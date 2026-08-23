@@ -34,6 +34,7 @@ struct GameRuntime {
     GameMap      map;
     PlayerToken  players[A4_MAX_PLAYERS];
     int          money[A4_MAX_PLAYERS];
+    unsigned int tools[A4_MAX_PLAYERS][4];  /* 道具库存：1路障 2机器娃娃 3炸弹 */
     int          player_count;
     int          initial_money;
     RandomDice   dice;
@@ -66,6 +67,48 @@ static void notice_append(GameRuntime *rt, const char *format, ...) {
     va_end(args);
 }
 
+/* 移动途中每格回调：处理路障/炸弹拦截。返回 0 中断移动。 */
+typedef struct ToolMoveContext {
+    GameRuntime *runtime;
+    int player_index;
+    int event;  /* 0=无，1=路障，2=炸弹 */
+} ToolMoveContext;
+
+static int tool_move_handler(PlayerToken *player, const MapCell *cell,
+                             const MoveContext *context, void *data)
+{
+    ToolMoveContext *move = (ToolMoveContext *)data;
+    GameRuntime *rt;
+    (void)player;
+    (void)context;
+    if (move == NULL || cell == NULL) {
+        return 1;
+    }
+    rt = move->runtime;
+    if (cell->has_block) {
+        MapCell *mutable_cell = game_map_cell_at_mut(&rt->map, cell->index);
+        if (mutable_cell != NULL) {
+            mutable_cell->has_block = 0;
+        }
+        move->event = 1;
+        notice_append(rt, "踩到路障，停在 %d 号位置，路障已消失。\n", cell->index);
+        return 0;
+    }
+    if (cell->has_bomb) {
+        MapCell *mutable_cell = game_map_cell_at_mut(&rt->map, cell->index);
+        if (mutable_cell != NULL) {
+            mutable_cell->has_bomb = 0;
+        }
+        player->position = 14; /* 医院 */
+        move->event = 2;
+        notice_append(rt, "踩到炸弹，送往医院并住院 3 回合。\n");
+        (void)a4_turn_manager_set_skip(&rt->turn_manager,
+            (A4PlayerId)(move->player_index + 1), A4_SKIP_HOSPITAL, 3U, "炸弹住院");
+        return 0;
+    }
+    return 1;
+}
+
 /* ---- A4 hooks 实现 ---- */
 
 /* 掷骰移动（A8 逻辑）。forced_steps>0 用于测试注入。 */
@@ -82,6 +125,7 @@ static A4MoveResult roll_and_move_impl(
     PlayerToken *token = &rt->players[idx];
     int steps = forced_steps > 0 ? forced_steps : dice_roll(&rt->dice_iface);
     MoveContext move_ctx;
+    ToolMoveContext tool_ctx;
     const MapCell *cell;
 
     if (actual_steps != NULL) {
@@ -90,7 +134,10 @@ static A4MoveResult roll_and_move_impl(
 
     notice_append(rt, "玩家 %s 掷出 %d 点。\n", token->name, steps);
 
-    move_ctx = move_player(&rt->map, token, steps, NULL, NULL);
+    tool_ctx.runtime = rt;
+    tool_ctx.player_index = idx;
+    tool_ctx.event = 0;
+    move_ctx = move_player(&rt->map, token, steps, tool_move_handler, &tool_ctx);
     (void)move_ctx;
 
     notice_append(rt, "移动到位置 %d。\n", token->position);
@@ -166,12 +213,18 @@ static A4MoveResult roll_and_move_impl(
                 A4_SKIP_PRISON, 2U, "入狱");
             break;
         case CELL_MINE:
-            rt->money[idx] += cell->mine_points;
-            notice_append(rt, "到达矿地，获得 %d 点。\n", cell->mine_points);
+            rt->gift_shop.points[idx] += cell->mine_points;
+            notice_append(rt, "到达矿地，获得 %d 点，当前点数 %d。\n",
+                          cell->mine_points, rt->gift_shop.points[idx]);
             break;
         case CELL_TOOL_SHOP:
-            notice_append(rt, "到达道具屋。\n");
-            break;
+            rt->context = RUNTIME_CONTEXT_TOOL_SHOP;
+            notice_append(rt,
+                "到达道具屋。欢迎光临，请输入 1/2/3 选择道具：\n"
+                "  1 路障（50 点）  2 机器娃娃（30 点）  3 炸弹（50 点）\n"
+                "  F 退出道具屋\n"
+                "当前点数 %d。\n", rt->gift_shop.points[idx]);
+            return A4_MOVE_LANDING_PENDING;
         case CELL_GIFT_SHOP:
             if (gift_shop_begin(&rt->gift_shop, (size_t)idx) != GIFT_OK) {
                 return A4_MOVE_FAILED;
@@ -471,6 +524,34 @@ int runtime_answer(GameRuntime *rt,
         } else {
             notice_append(rt, "放弃升级。\n");
         }
+    } else if (rt->context == RUNTIME_CONTEXT_TOOL_SHOP) {
+        int choice = answer[0] - '0';
+        int price;
+        if (answer[0] == 'F' || answer[0] == 'f') {
+            notice_append(rt, "退出道具屋。\n");
+        } else if (answer[0] >= '1' && answer[0] <= '3' && answer[1] == '\0') {
+            price = (answer[0] == '2') ? 30 : 50;
+            if (rt->gift_shop.points[player_index] < price) {
+                notice_append(rt, "点数不足：需要 %d 点，当前 %d 点。\n",
+                              price, rt->gift_shop.points[player_index]);
+                (void)snprintf(message, message_size, "%s", rt->notice);
+                return 1;
+            }
+            if (rt->tools[player_index][1] + rt->tools[player_index][2] +
+                rt->tools[player_index][3] >= 10U) {
+                notice_append(rt, "道具数量已达上限 10。\n");
+                (void)snprintf(message, message_size, "%s", rt->notice);
+                return 1;
+            }
+            rt->gift_shop.points[player_index] -= price;
+            rt->tools[player_index][choice]++;
+            notice_append(rt, "购买成功，剩余点数 %d。\n",
+                          rt->gift_shop.points[player_index]);
+        } else {
+            notice_append(rt, "输入无效，请输入 1/2/3 或 F。\n");
+            (void)snprintf(message, message_size, "%s", rt->notice);
+            return 1;
+        }
     } else {
         (void)snprintf(message, message_size, "当前没有等待处理的落地事件。\n");
         return -1;
@@ -554,6 +635,9 @@ int runtime_query(GameRuntime *rt, char *message, size_t message_size)
             ? (int)ap->skip_turns_remaining : 0;
     }
 
+    state.item_counts[QUERY_ITEM_BLOCK] = (int)rt->tools[idx][1];
+    state.item_counts[QUERY_ITEM_ROBOT] = (int)rt->tools[idx][2];
+    state.item_counts[QUERY_ITEM_BOMB] = (int)rt->tools[idx][3];
     state.bankrupt = 0;
 
     return query_format_player(&state, message, message_size) == 0 ? 0 : 1;
@@ -591,6 +675,90 @@ int runtime_sell(GameRuntime *rt, int position, char *message, size_t message_si
     notice_append(rt, "出售房产 %d 号，获得 %d 元。\n", position, sale_price);
     (void)snprintf(message, message_size, "%s", rt->notice);
     return 0;
+}
+
+int runtime_place_tool(GameRuntime *rt, int tool, int distance,
+                       char *message, size_t message_size)
+{
+    A4TurnSnapshot snapshot;
+    int player_id;
+    int idx;
+    int target;
+    MapCell *cell;
+    if (rt == NULL || message == NULL || message_size == 0) {
+        return 1;
+    }
+    if (tool != 1 && tool != 3) {
+        return 1;
+    }
+    if (distance < -10 || distance > 10) {
+        (void)snprintf(message, message_size, "距离必须在 -10~10 之间。\n");
+        return 1;
+    }
+    snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
+    player_id = (int)snapshot.current_player_id;
+    idx = player_id - 1;
+    if (rt->tools[idx][tool] == 0U) {
+        (void)snprintf(message, message_size, "你没有该道具。\n");
+        return 1;
+    }
+    target = game_map_normalize_position(rt->players[idx].position + distance);
+    cell = game_map_cell_at_mut(&rt->map, target);
+    if (cell == NULL || cell->has_block || cell->has_bomb) {
+        (void)snprintf(message, message_size, "目标位置已有道具，无法放置。\n");
+        return 1;
+    }
+    if (tool == 1) {
+        cell->has_block = 1;
+    } else {
+        cell->has_bomb = 1;
+    }
+    rt->tools[idx][tool]--;
+    (void)snprintf(message, message_size, "已在位置 %d 放置%s。\n",
+                   target, tool == 1 ? "路障" : "炸弹");
+    return 0;
+}
+
+int runtime_use_robot(GameRuntime *rt, char *message, size_t message_size)
+{
+    A4TurnSnapshot snapshot;
+    int player_id;
+    int idx;
+    int distance;
+    int removed = 0;
+    if (rt == NULL || message == NULL || message_size == 0) {
+        return 1;
+    }
+    snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
+    player_id = (int)snapshot.current_player_id;
+    idx = player_id - 1;
+    if (rt->tools[idx][2] == 0U) {
+        (void)snprintf(message, message_size, "你没有机器娃娃。\n");
+        return 1;
+    }
+    for (distance = 1; distance <= 10; ++distance) {
+        int pos = game_map_normalize_position(rt->players[idx].position + distance);
+        MapCell *cell = game_map_cell_at_mut(&rt->map, pos);
+        if (cell != NULL && (cell->has_block || cell->has_bomb)) {
+            cell->has_block = 0;
+            cell->has_bomb = 0;
+            ++removed;
+        }
+    }
+    rt->tools[idx][2]--;
+    (void)snprintf(message, message_size, "机器娃娃清扫了 %d 个道具。\n", removed);
+    return 0;
+}
+
+int runtime_buy_tool(GameRuntime *rt, int tool, char *message, size_t message_size)
+{
+    char answer[2];
+    if (rt == NULL || message == NULL || message_size == 0 || tool < 1 || tool > 3) {
+        return 1;
+    }
+    answer[0] = (char)('0' + tool);
+    answer[1] = '\0';
+    return runtime_answer(rt, answer, message, message_size) == 0 ? 0 : 1;
 }
 
 int runtime_render(GameRuntime *rt, char *message, size_t message_size)

@@ -14,7 +14,8 @@ typedef enum RuntimeContext {
     RUNTIME_CONTEXT_GIFT_HOUSE,
     RUNTIME_CONTEXT_MAGIC_HOUSE,
     RUNTIME_CONTEXT_BUY_CONFIRM,
-    RUNTIME_CONTEXT_UPGRADE_CONFIRM
+    RUNTIME_CONTEXT_UPGRADE_CONFIRM,
+    RUNTIME_CONTEXT_TOOL_SHOP
 } RuntimeContext;
 
 /* 创建运行时。player_count: 2~4；initial_money: 每位玩家初始资金；
@@ -51,6 +52,16 @@ int runtime_query(GameRuntime *runtime, char *message, size_t message_size);
 
 /* 出售指定位置的自有房产（掷骰前操作）。返回 0 成功。 */
 int runtime_sell(GameRuntime *runtime, int position, char *message, size_t message_size);
+
+/* 放置道具（1 路障 / 3 炸弹），distance 为相对距离 -10~10。返回 0 成功。 */
+int runtime_place_tool(GameRuntime *runtime, int tool, int distance,
+                       char *message, size_t message_size);
+
+/* 使用机器娃娃，清扫前方 10 步内的路障/炸弹。返回 0 成功。 */
+int runtime_use_robot(GameRuntime *runtime, char *message, size_t message_size);
+
+/* 道具屋购买道具（1 路障 / 2 机器娃娃 / 3 炸弹）。返回 0 成功。 */
+int runtime_buy_tool(GameRuntime *runtime, int tool, char *message, size_t message_size);
 
 /* 渲染地图到 message。返回 0 成功。 */
 int runtime_render(GameRuntime *runtime, char *message, size_t message_size);

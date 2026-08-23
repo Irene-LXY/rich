@@ -55,6 +55,9 @@ static void sync_runtime_context(Game *game) {
         case RUNTIME_CONTEXT_UPGRADE_CONFIRM:
             game->context = CONTEXT_UPGRADE_CONFIRM;
             break;
+        case RUNTIME_CONTEXT_TOOL_SHOP:
+            game->context = CONTEXT_TOOL_SHOP;
+            break;
         case RUNTIME_CONTEXT_TURN_START:
         default:
             game->context = CONTEXT_TURN_START;
@@ -140,7 +143,8 @@ CommandResult command_execute(
     if (game->context == CONTEXT_GIFT_HOUSE ||
         game->context == CONTEXT_MAGIC_HOUSE ||
         game->context == CONTEXT_BUY_CONFIRM ||
-        game->context == CONTEXT_UPGRADE_CONFIRM) {
+        game->context == CONTEXT_UPGRADE_CONFIRM ||
+        game->context == CONTEXT_TOOL_SHOP) {
         int answer_result = runtime_answer(game->runtime, full_input,
                                            message, message_size);
         sync_runtime_context(game);
@@ -186,6 +190,31 @@ CommandResult command_execute(
             return COMMAND_INVALID;
         }
         if (runtime_sell(game->runtime, position, message, message_size) != 0) {
+            return COMMAND_NOT_ALLOWED;
+        }
+        return COMMAND_OK;
+    }
+    if (equals_ignore_case(text, "block") || equals_ignore_case(text, "bomb")) {
+        int tool = equals_ignore_case(text, "block") ? 1 : 3;
+        char *end;
+        long parsed = strtol(arguments, &end, 10);
+        if (end == arguments || *end != '\0' || parsed < -10 || parsed > 10) {
+            write_message(message, message_size,
+                          "用法：Block n / Bomb n，n 范围为 -10~10。\n");
+            return COMMAND_INVALID;
+        }
+        if (runtime_place_tool(game->runtime, tool, (int)parsed,
+                               message, message_size) != 0) {
+            return COMMAND_NOT_ALLOWED;
+        }
+        return COMMAND_OK;
+    }
+    if (equals_ignore_case(text, "robot")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Robot 不接受参数。\n");
+            return COMMAND_INVALID;
+        }
+        if (runtime_use_robot(game->runtime, message, message_size) != 0) {
             return COMMAND_NOT_ALLOWED;
         }
         return COMMAND_OK;
