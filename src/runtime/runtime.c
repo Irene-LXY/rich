@@ -122,28 +122,48 @@ static A4MoveResult roll_and_move_impl(
                     cell->index, cell->building_level);
                 return A4_MOVE_LANDING_PENDING;
             } else {
-                int toll = cell->land_price / 2;
+                int property_value = cell->land_price * (cell->building_level + 1);
+                int toll = property_value / 2;
                 int owner_idx = cell->owner_id - 1;
-                rt->money[idx] -= toll;
-                if (owner_idx >= 0 && owner_idx < rt->player_count) {
-                    rt->money[owner_idx] += toll;
+                int exempt = 0;
+                if (gift_shop_god_rounds(&rt->gift_shop, (size_t)idx) > 0) {
+                    exempt = 1;
+                    notice_append(rt, "财神附身，可免过路费。\n");
                 }
-                notice_append(rt,
-                    "到达玩家 %d 的房产 %d 号，支付过路费 %d 元。\n",
-                    cell->owner_id, cell->index, toll);
+                if (owner_idx >= 0 && owner_idx < rt->player_count) {
+                    const A4PlayerState *op = &rt->turn_manager.players[owner_idx];
+                    if (op->skip_turns_remaining > 0U &&
+                        (op->skip_reason == A4_SKIP_HOSPITAL ||
+                         op->skip_reason == A4_SKIP_PRISON)) {
+                        exempt = 1;
+                        notice_append(rt, "地产主人在医院或监狱中，可免过路费。\n");
+                    }
+                }
+                if (exempt) {
+                    notice_append(rt, "到达玩家 %d 的房产 %d 号，免付过路费。\n",
+                                  cell->owner_id, cell->index);
+                } else {
+                    rt->money[idx] -= toll;
+                    if (owner_idx >= 0 && owner_idx < rt->player_count) {
+                        rt->money[owner_idx] += toll;
+                    }
+                    notice_append(rt,
+                        "到达玩家 %d 的房产 %d 号，支付过路费 %d 元。\n",
+                        cell->owner_id, cell->index, toll);
+                }
             }
             break;
         case CELL_HOSPITAL:
-            notice_append(rt, "进入医院，住院休息 1 回合。\n");
+            notice_append(rt, "进入医院，住院 3 天（轮空 3 次）。\n");
             (void)a4_turn_manager_set_skip(
                 &rt->turn_manager, (A4PlayerId)player_id,
-                A4_SKIP_HOSPITAL, 1U, "住院");
+                A4_SKIP_HOSPITAL, 3U, "住院");
             break;
         case CELL_PRISON:
-            notice_append(rt, "进入监狱，被扣留 1 回合。\n");
+            notice_append(rt, "进入监狱，扣留 2 天（轮空 2 次）。\n");
             (void)a4_turn_manager_set_skip(
                 &rt->turn_manager, (A4PlayerId)player_id,
-                A4_SKIP_PRISON, 1U, "入狱");
+                A4_SKIP_PRISON, 2U, "入狱");
             break;
         case CELL_MINE:
             rt->money[idx] += cell->mine_points;

@@ -109,9 +109,9 @@ CommandResult startup_handle_input(
         }
         case SETUP_INITIAL_MONEY: {
             int money = (int)strtol(input, 0, 10);
-            if (money <= 0) {
+            if (money < 1000 || money > 50000) {
                 write_message(message, message_size,
-                              "初始资金必须为正整数，请重新输入：\n");
+                              "初始资金必须在 1000~50000 之间，请重新输入：\n");
                 return COMMAND_INVALID;
             }
             game->setup_initial_money = money;
