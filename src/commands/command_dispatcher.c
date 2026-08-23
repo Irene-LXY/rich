@@ -100,7 +100,7 @@ CommandResult command_execute(
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "map")) {
-        (void)runtime_render(game->runtime, message, message_size);
+        write_message(message, message_size, "地图已实时显示在上方，无需手动查看。\n");
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "help")) {

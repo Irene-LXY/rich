@@ -312,7 +312,7 @@ int runtime_render(GameRuntime *rt, char *message, size_t message_size)
         return 1;
     }
     return render_map(&rt->map, rt->players, (size_t)rt->player_count,
-                      0, 1, message, message_size) ? 0 : 1;
+                      1, 1, message, message_size) ? 0 : 1;
 }
 
 int runtime_help(GameRuntime *rt, char *message, size_t message_size)
@@ -325,7 +325,6 @@ int runtime_help(GameRuntime *rt, char *message, size_t message_size)
         "可用命令：\n"
         "  Roll  掷骰子移动\n"
         "  Query 查询当前玩家状态\n"
-        "  Map   显示地图\n"
         "  Help  显示本帮助\n"
         "  Quit  结束整局游戏\n");
     return 0;
