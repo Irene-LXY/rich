@@ -9,6 +9,8 @@
  */
 #include "monopoly/runtime.h"
 
+#include "monopoly/gift.h"
+
 #include "a4/a4_turn_manager.h"
 #include "map/map.h"
 #include "map/game_interfaces.h"
@@ -26,6 +28,7 @@ static const ConsoleColor ROLE_COLORS[A4_MAX_PLAYERS]   = {
 };
 
 #define NOTICE_CAPACITY 2048
+#define MAGIC_EFFECT_CAPACITY 16U
 
 struct GameRuntime {
     GameMap      map;
@@ -37,6 +40,11 @@ struct GameRuntime {
     Dice         dice_iface;
     A4TurnManager turn_manager;
     A4TurnHooks   hooks;
+    GiftShopState gift_shop;
+    MagicHouseState magic_house;
+    RuntimeContext context;
+    MagicEffect magic_effects[MAGIC_EFFECT_CAPACITY];
+    size_t magic_effect_count;
     char         notice[NOTICE_CAPACITY];
 };
 
@@ -123,15 +131,41 @@ static A4MoveResult roll_and_move_impl(
             notice_append(rt, "到达道具屋。\n");
             break;
         case CELL_GIFT_SHOP:
-            notice_append(rt, "到达礼品屋。\n");
-            break;
+            if (gift_shop_begin(&rt->gift_shop, (size_t)idx) != GIFT_OK) {
+                return A4_MOVE_FAILED;
+            }
+            rt->context = RUNTIME_CONTEXT_GIFT_HOUSE;
+            notice_append(rt,
+                "欢迎光临礼品屋，请选择一件礼品：\n"
+                "  1 奖金（2000 元）\n"
+                "  2 点数卡（200 点）\n"
+                "  3 财神（5 轮内免过路费）\n");
+            return A4_MOVE_LANDING_PENDING;
         case CELL_MAGIC_HOUSE:
-            notice_append(rt, "到达魔法屋。\n");
-            break;
+            if (magic_house_begin(&rt->magic_house, (size_t)idx) != MAGIC_OK) {
+                return A4_MOVE_FAILED;
+            }
+            rt->context = RUNTIME_CONTEXT_MAGIC_HOUSE;
+            notice_append(rt, "进入魔法屋，可选择已注册的魔法：\n");
+            if (rt->magic_effect_count == 0U) {
+                notice_append(rt, "  当前没有配置具体魔法。\n");
+            } else {
+                size_t effect_index;
+                for (effect_index = 0; effect_index < rt->magic_effect_count;
+                     ++effect_index) {
+                    notice_append(rt, "  %d %s\n",
+                                  rt->magic_effects[effect_index].id,
+                                  rt->magic_effects[effect_index].name);
+                }
+            }
+            notice_append(rt, "  F 离开魔法屋\n");
+            return A4_MOVE_LANDING_PENDING;
         default:
             break;
     }
 
+    gift_shop_finish_turn(&rt->gift_shop, (size_t)idx);
+    rt->context = RUNTIME_CONTEXT_TURN_START;
     return A4_MOVE_RESOLVED;
 }
 
@@ -216,6 +250,9 @@ GameRuntime *runtime_create(int player_count, int initial_money)
     rt->dice_iface = random_dice_as_interface(&rt->dice);
     rt->player_count = player_count;
     rt->initial_money = initial_money;
+    rt->context = RUNTIME_CONTEXT_TURN_START;
+    gift_shop_init(&rt->gift_shop, (size_t)player_count);
+    magic_house_init(&rt->magic_house, (size_t)player_count);
 
     for (i = 0; i < player_count; ++i) {
         rt->players[i].id = i + 1;
@@ -265,18 +302,130 @@ int runtime_begin(GameRuntime *rt, char *message, size_t message_size)
     return status == A4_TURN_OK ? 0 : 1;
 }
 
-int runtime_roll(GameRuntime *rt, char *message, size_t message_size)
+static int runtime_move(GameRuntime *rt,
+                        int forced_steps,
+                        char *message,
+                        size_t message_size)
 {
     A4TurnSnapshot snapshot;
     A4TurnStatus status;
-    if (rt == NULL || message == NULL || message_size == 0) {
+    if (rt == NULL || message == NULL || message_size == 0 || forced_steps < 0) {
         return 1;
     }
     notice_clear(rt);
     snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
-    status = a4_turn_manager_roll(&rt->turn_manager, snapshot.current_player_id, 0);
+    status = a4_turn_manager_roll(&rt->turn_manager,
+                                  snapshot.current_player_id, forced_steps);
     (void)snprintf(message, message_size, "%s", rt->notice);
     return status == A4_TURN_OK ? 0 : 1;
+}
+
+int runtime_roll(GameRuntime *rt, char *message, size_t message_size)
+{
+    return runtime_move(rt, 0, message, message_size);
+}
+
+int runtime_step(GameRuntime *rt, int steps, char *message, size_t message_size)
+{
+    if (steps <= 0) {
+        return 1;
+    }
+    return runtime_move(rt, steps, message, message_size);
+}
+
+int runtime_answer(GameRuntime *rt,
+                   const char *answer,
+                   char *message,
+                   size_t message_size)
+{
+    A4TurnSnapshot snapshot;
+    A4TurnStatus status;
+    size_t player_index;
+    int result = 0;
+
+    if (rt == NULL || answer == NULL || message == NULL || message_size == 0) {
+        return -1;
+    }
+    snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
+    if (snapshot.current_player_id == 0U) {
+        return -1;
+    }
+    player_index = (size_t)(snapshot.current_player_id - 1U);
+    notice_clear(rt);
+
+    if (rt->context == RUNTIME_CONTEXT_GIFT_HOUSE) {
+        GiftCode code = gift_shop_answer(&rt->gift_shop, rt->money,
+                                         (size_t)rt->player_count, answer);
+        if (code == GIFT_OK) {
+            notice_append(rt, "礼品已领取并立即生效。\n");
+        } else if (code == GIFT_INVALID_CHOICE) {
+            notice_append(rt, "礼品编号无效，已放弃本次机会。\n");
+            result = 1;
+        } else {
+            notice_append(rt, "礼品屋处理失败。\n");
+            (void)snprintf(message, message_size, "%s", rt->notice);
+            return -1;
+        }
+    } else if (rt->context == RUNTIME_CONTEXT_MAGIC_HOUSE) {
+        MagicTarget target = {MAGIC_TARGET_NONE, 0};
+        MagicCode code = magic_house_answer(&rt->magic_house, answer,
+                                             rt->magic_effects,
+                                             rt->magic_effect_count, &target);
+        if (code == MAGIC_OK) {
+            notice_append(rt, "魔法施展成功。\n");
+        } else if (code == MAGIC_EXIT) {
+            notice_append(rt, "已离开魔法屋，本次未施展魔法。\n");
+        } else if (code == MAGIC_INVALID_CHOICE) {
+            notice_append(rt, "魔法编号无效，请重新选择，或输入 F 离开。\n");
+            (void)snprintf(message, message_size, "%s", rt->notice);
+            return 1;
+        } else if (code == MAGIC_EFFECT_REJECTED) {
+            notice_append(rt, "当前条件不能施展该魔法，请重新选择或输入 F。\n");
+            (void)snprintf(message, message_size, "%s", rt->notice);
+            return 1;
+        } else {
+            notice_append(rt, "魔法屋处理失败。\n");
+            (void)snprintf(message, message_size, "%s", rt->notice);
+            return -1;
+        }
+    } else {
+        (void)snprintf(message, message_size, "当前没有等待处理的落地事件。\n");
+        return -1;
+    }
+
+    gift_shop_finish_turn(&rt->gift_shop, player_index);
+    rt->context = RUNTIME_CONTEXT_TURN_START;
+    status = a4_turn_manager_complete_landing(
+        &rt->turn_manager, snapshot.current_player_id, false);
+    if (status != A4_TURN_OK) {
+        notice_append(rt, "结束落地事件失败：%s。\n",
+                      a4_turn_status_string(status));
+        result = -1;
+    }
+    (void)snprintf(message, message_size, "%s", rt->notice);
+    return result;
+}
+
+RuntimeContext runtime_context(const GameRuntime *rt)
+{
+    return rt == NULL ? RUNTIME_CONTEXT_TURN_START : rt->context;
+}
+
+int runtime_register_magic_effect(GameRuntime *rt, const MagicEffect *effect)
+{
+    size_t index;
+    if (rt == NULL || effect == NULL || effect->id <= 0 ||
+        effect->name == NULL || effect->handler == NULL ||
+        rt->magic_effect_count >= MAGIC_EFFECT_CAPACITY) {
+        return 1;
+    }
+    for (index = 0; index < rt->magic_effect_count; ++index) {
+        if (rt->magic_effects[index].id == effect->id) {
+            return 1;
+        }
+    }
+    rt->magic_effects[rt->magic_effect_count++] = *effect;
+    return 0;
 }
 
 int runtime_query(GameRuntime *rt, char *message, size_t message_size)
@@ -300,9 +449,11 @@ int runtime_query(GameRuntime *rt, char *message, size_t message_size)
         (void)snprintf(description, sizeof(description), "未知");
     }
     (void)snprintf(message, message_size,
-        "玩家 %s（%d 号）：位置 %d（%s），资金 %d 元。\n",
+        "玩家 %s（%d 号）：位置 %d（%s），资金 %d 元，点数 %d，财神剩余 %d 轮。\n",
         rt->players[idx].name, player_id, rt->players[idx].position,
-        description, rt->money[idx]);
+        description, rt->money[idx],
+        gift_shop_points(&rt->gift_shop, (size_t)idx),
+        gift_shop_god_rounds(&rt->gift_shop, (size_t)idx));
     return 0;
 }
 
@@ -312,7 +463,7 @@ int runtime_render(GameRuntime *rt, char *message, size_t message_size)
         return 1;
     }
     return render_map(&rt->map, rt->players, (size_t)rt->player_count,
-                      1, 1, message, message_size) ? 0 : 1;
+                      0, 1, message, message_size) ? 0 : 1;
 }
 
 int runtime_help(GameRuntime *rt, char *message, size_t message_size)
@@ -324,7 +475,9 @@ int runtime_help(GameRuntime *rt, char *message, size_t message_size)
     (void)snprintf(message, message_size,
         "可用命令：\n"
         "  Roll  掷骰子移动\n"
+        "  Step n 遥控骰子移动 n 步（测试用）\n"
         "  Query 查询当前玩家状态\n"
+        "  Map   显示地图\n"
         "  Help  显示本帮助\n"
         "  Quit  结束整局游戏\n");
     return 0;
@@ -351,4 +504,28 @@ int runtime_is_finished(const GameRuntime *rt)
         return 1;
     }
     return rt->turn_manager.phase == A4_TURN_PHASE_FINISHED;
+}
+
+int runtime_player_position(const GameRuntime *rt, size_t player_index)
+{
+    return rt != NULL && player_index < (size_t)rt->player_count
+        ? rt->players[player_index].position : -1;
+}
+
+int runtime_player_money(const GameRuntime *rt, size_t player_index)
+{
+    return rt != NULL && player_index < (size_t)rt->player_count
+        ? rt->money[player_index] : -1;
+}
+
+int runtime_player_points(const GameRuntime *rt, size_t player_index)
+{
+    return rt != NULL && player_index < (size_t)rt->player_count
+        ? gift_shop_points(&rt->gift_shop, player_index) : -1;
+}
+
+int runtime_player_god_rounds(const GameRuntime *rt, size_t player_index)
+{
+    return rt != NULL && player_index < (size_t)rt->player_count
+        ? gift_shop_god_rounds(&rt->gift_shop, player_index) : -1;
 }
