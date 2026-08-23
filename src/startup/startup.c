@@ -2,6 +2,7 @@
 #include "monopoly/runtime.h"
 #include "monopoly/character.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -9,6 +10,32 @@ static void write_message(char *message, size_t size, const char *text) {
     if (message != 0 && size > 0) {
         (void)snprintf(message, size, "%s", text);
     }
+}
+
+/*
+ * 解析“整行必须恰好是一个纯数字整数”。
+ * 空串或含任何非数字字符（小数点、正负号 +/-、字母、指数、逗号、
+ * 中间空格等）均返回 0；成功返回 1 并写入 *value。
+ * 玩家人数、初始资金、角色编号统一只接受纯数字输入。
+ */
+static int parse_strict_int(const char *input, long *value) {
+    const char *cursor;
+
+    if (*input == '\0') {
+        return 0;
+    }
+
+    /* 纯数字校验：拒绝小数、文字、正负号或其他字符
+       （strtol 本身会容忍 '+'/'-' 号，必须先拦住） */
+    for (cursor = input; *cursor != '\0'; ++cursor) {
+        if (!isdigit((unsigned char)*cursor)) {
+            return 0;
+        }
+    }
+
+    /* 全数字串解析（strtol 溢出会得到 LONG_MAX，调用方的范围检查必然拦截） */
+    *value = strtol(input, 0, 10);
+    return 1;
 }
 
 /* 列出剩余可选角色，并提示下一位玩家输入编号。 */
@@ -95,26 +122,26 @@ CommandResult startup_handle_input(
 
     switch (game->setup_step) {
         case SETUP_PLAYER_COUNT: {
-            int count = (int)strtol(input, 0, 10);
-            if (count < 2 || count > 4) {
+            long parsed = 0;
+            if (!parse_strict_int(input, &parsed) || parsed < 2 || parsed > 4) {
                 write_message(message, message_size,
                               "玩家数量必须为 2-4，请重新输入：\n");
                 return COMMAND_INVALID;
             }
-            game->setup_player_count = count;
+            game->setup_player_count = (int)parsed;
             game->setup_step = SETUP_INITIAL_MONEY;
             write_message(message, message_size,
                           "请输入每位玩家的初始资金：\n");
             return COMMAND_OK;
         }
         case SETUP_INITIAL_MONEY: {
-            int money = (int)strtol(input, 0, 10);
-            if (money < 1000 || money > 50000) {
+            long parsed = 0;
+            if (!parse_strict_int(input, &parsed) || parsed < 1000 || parsed > 50000) {
                 write_message(message, message_size,
                               "初始资金必须在 1000~50000 之间，请重新输入：\n");
                 return COMMAND_INVALID;
             }
-            game->setup_initial_money = money;
+            game->setup_initial_money = (int)parsed;
             game->setup_step = SETUP_ROLE_SELECTION;
             game->setup_choosing = 0;
             write_available_roles(message, message_size,
@@ -122,13 +149,16 @@ CommandResult startup_handle_input(
             return COMMAND_OK;
         }
         case SETUP_ROLE_SELECTION: {
-            int id = (int)strtol(input, 0, 10);
+            long parsed = 0;
+            int id;
             int i;
-            if (id < CHARACTER_MIN_ID || id > CHARACTER_MAX_ID) {
+            if (!parse_strict_int(input, &parsed) ||
+                parsed < CHARACTER_MIN_ID || parsed > CHARACTER_MAX_ID) {
                 write_message(message, message_size,
                               "角色编号必须为 1-4，请重新选择。\n");
                 return COMMAND_INVALID;
             }
+            id = (int)parsed;
             for (i = 0; i < game->setup_choosing; ++i) {
                 if (game->setup_chosen[i] == id) {
                     write_message(message, message_size,
