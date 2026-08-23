@@ -26,7 +26,9 @@ static void command_name(const char *line, char *out, size_t out_size)
  */
 static int command_known(const char *name)
 {
-    static const char *const known[] = { "QUERY", "ROLL", "STEP" };
+    static const char *const known[] = {
+        "ROLL", "STEP", "SELL", "BLOCK", "BOMB", "ROBOT", "QUERY"
+    };
     size_t i;
 
     for (i = 0; i < sizeof(known) / sizeof(known[0]); ++i) {
