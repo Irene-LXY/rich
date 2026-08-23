@@ -36,12 +36,19 @@ typedef enum {
     SETUP_COMPLETE
 } SetupStep;
 
+/* 集成层运行时句柄；由 src/runtime 提供，命令层与引导层通过它访问
+ * 地图、玩家、回合管理、骰子等游戏状态。使用不透明指针以保持实例隔离。 */
+struct GameRuntime;
+
 typedef struct {
     GamePhase phase;
     GameContext context;
     GameEndReason end_reason;
     SetupStep setup_step;
     unsigned long state_revision;
+    struct GameRuntime *runtime;   /* 集成层运行时，NULL 表示尚未初始化 */
+    int setup_player_count;        /* 引导阶段临时：玩家数量 */
+    int setup_initial_money;       /* 引导阶段临时：初始资金 */
 } Game;
 
 void game_init(Game *game);

@@ -1,4 +1,6 @@
 #include "monopoly/command.h"
+#include "monopoly/runtime.h"
+#include "monopoly/startup.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -56,7 +58,7 @@ CommandResult command_execute(
         return COMMAND_GAME_ENDED;
     }
 
-    (void)strcpy(buffer, input);
+    (void)memcpy(buffer, input, strlen(input) + 1);
     text = trim(buffer);
     if (*text == '\0') {
         write_message(message, message_size, "命令不能为空。\n");
@@ -74,8 +76,36 @@ CommandResult command_execute(
         arguments = trim(separator + 1);
     }
 
+    /* 引导阶段：运行时尚未创建，交给开局引导处理。 */
+    if (game->runtime == 0) {
+        if (equals_ignore_case(text, "quit")) {
+            return quit_command_execute(game, arguments, message, message_size);
+        }
+        return startup_handle_input(game, text, message, message_size);
+    }
+
     if (equals_ignore_case(text, "quit")) {
         return quit_command_execute(game, arguments, message, message_size);
+    }
+    if (equals_ignore_case(text, "roll")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Roll 命令不接受参数。\n");
+            return COMMAND_INVALID;
+        }
+        (void)runtime_roll(game->runtime, message, message_size);
+        return COMMAND_OK;
+    }
+    if (equals_ignore_case(text, "query")) {
+        (void)runtime_query(game->runtime, message, message_size);
+        return COMMAND_OK;
+    }
+    if (equals_ignore_case(text, "map")) {
+        (void)runtime_render(game->runtime, message, message_size);
+        return COMMAND_OK;
+    }
+    if (equals_ignore_case(text, "help")) {
+        (void)runtime_help(game->runtime, message, message_size);
+        return COMMAND_OK;
     }
 
     write_message(message, message_size, "无效或尚未实现的命令。\n");

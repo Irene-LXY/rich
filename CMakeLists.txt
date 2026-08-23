@@ -16,8 +16,16 @@ add_library(monopoly_core
     src/startup/startup.c
     src/commands/command_dispatcher.c
     src/commands/quit_command.c
+    src/runtime/runtime.c
+    A4/src/a4_turn_manager.c
+    map/src/map.c
+    map/src/game_interfaces.c
 )
-target_include_directories(monopoly_core PUBLIC include)
+target_include_directories(monopoly_core PUBLIC
+    include
+    A4/include
+    map/include
+)
 
 add_executable(monopoly src/main.c)
 target_link_libraries(monopoly PRIVATE monopoly_core)

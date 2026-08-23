@@ -9,6 +9,9 @@ void game_init(Game *game) {
     game->end_reason = END_REASON_NONE;
     game->setup_step = SETUP_PLAYER_COUNT;
     game->state_revision = 0;
+    game->runtime = 0;
+    game->setup_player_count = 0;
+    game->setup_initial_money = 0;
 }
 
 bool game_start(Game *game) {
