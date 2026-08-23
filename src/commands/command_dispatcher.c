@@ -109,10 +109,6 @@ CommandResult command_execute(
 
     (void)memcpy(buffer, input, strlen(input) + 1);
     text = trim(buffer);
-    if (*text == '\0') {
-        write_message(message, message_size, "命令不能为空。\n");
-        return COMMAND_INVALID;
-    }
 
     (void)memcpy(full_input, text, strlen(text) + 1);
 
@@ -127,12 +123,17 @@ CommandResult command_execute(
         arguments = trim(separator + 1);
     }
 
-    /* 引导阶段：运行时尚未创建，交给开局引导处理。 */
+    /* 引导阶段：运行时尚未创建，交给开局引导处理（含空输入，如资金默认值）。 */
     if (game->runtime == 0) {
         if (equals_ignore_case(text, "quit")) {
             return quit_command_execute(game, arguments, message, message_size);
         }
         return startup_handle_input(game, text, message, message_size);
+    }
+
+    if (*text == '\0') {
+        write_message(message, message_size, "命令不能为空。\n");
+        return COMMAND_INVALID;
     }
 
     if (equals_ignore_case(text, "quit")) {
@@ -224,6 +225,10 @@ CommandResult command_execute(
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "help")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Help 命令不接受参数。\n");
+            return COMMAND_INVALID;
+        }
         (void)runtime_help(game->runtime, message, message_size);
         return COMMAND_OK;
     }

@@ -29,6 +29,7 @@ static const ConsoleColor ROLE_COLORS[CHARACTER_COUNT] = {
 
 #define NOTICE_CAPACITY 2048
 #define MAGIC_EFFECT_CAPACITY 16U
+#define MAX_BUILDING_LEVEL 3  /* 空地0 / 茅屋1 / 洋房2 / 摩天楼3 */
 
 struct GameRuntime {
     GameMap      map;
@@ -186,6 +187,12 @@ static A4MoveResult roll_and_move_impl(
                     cell->index, cell->land_price);
                 return A4_MOVE_LANDING_PENDING;
             } else if (cell->owner_id == player_id) {
+                if (cell->building_level >= MAX_BUILDING_LEVEL) {
+                    notice_append(rt,
+                        "到达自己的房产 %d 号，已是最高等级（摩天楼），无法继续升级。\n",
+                        cell->index);
+                    break;
+                }
                 rt->context = RUNTIME_CONTEXT_UPGRADE_CONFIRM;
                 rt->pending_position = token->position;
                 rt->pending_price = cell->land_price;
@@ -547,7 +554,10 @@ int runtime_answer(GameRuntime *rt,
         int yes = answer[0] == 'Y' || answer[0] == 'y';
         MapCell *cell = game_map_cell_at_mut(&rt->map, rt->pending_position);
         if (yes && cell != NULL) {
-            if (rt->money[player_index] >= rt->pending_price) {
+            if (cell->building_level >= MAX_BUILDING_LEVEL) {
+                notice_append(rt, "房产 %d 号已是最高等级，无法升级。\n",
+                              rt->pending_position);
+            } else if (rt->money[player_index] >= rt->pending_price) {
                 rt->money[player_index] -= rt->pending_price;
                 ++cell->building_level;
                 notice_append(rt, "升级成功，房产 %d 号升至等级 %d。\n",

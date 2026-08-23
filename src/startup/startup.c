@@ -2,13 +2,27 @@
 #include "monopoly/runtime.h"
 #include "monopoly/character.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static void write_message(char *message, size_t size, const char *text) {
     if (message != 0 && size > 0) {
         (void)snprintf(message, size, "%s", text);
     }
+}
+
+/* 忽略大小写比较（用于“取消/cancel”等控制词）。 */
+static int equals_ignore_case(const char *left, const char *right) {
+    while (*left != '\0' && *right != '\0') {
+        if (tolower((unsigned char)*left) != tolower((unsigned char)*right)) {
+            return 0;
+        }
+        left++;
+        right++;
+    }
+    return *left == '\0' && *right == '\0';
 }
 
 /* 列出剩余可选角色，并提示下一位玩家输入编号。 */
@@ -108,17 +122,36 @@ CommandResult startup_handle_input(
             return COMMAND_OK;
         }
         case SETUP_INITIAL_MONEY: {
-            int money = (int)strtol(input, 0, 10);
-            if (money < 1000 || money > 50000) {
+            int money;
+            if (input[0] == '\0') {
+                /* 空输入：采用默认初始资金 10000。 */
+                money = 10000;
+            } else if (equals_ignore_case(input, "取消") ||
+                       equals_ignore_case(input, "cancel")) {
+                /* 取消设置：回到人数步骤，重新开始引导。 */
+                game->setup_player_count = 0;
+                game->setup_step = SETUP_PLAYER_COUNT;
                 write_message(message, message_size,
-                              "初始资金必须在 1000~50000 之间，请重新输入：\n");
-                return COMMAND_INVALID;
+                              "已取消资金设置，请重新输入玩家人数（2-4）：\n");
+                return COMMAND_OK;
+            } else {
+                money = (int)strtol(input, 0, 10);
+                if (money < 1000 || money > 50000) {
+                    write_message(message, message_size,
+                                  "初始资金必须在 1000~50000 之间，请重新输入：\n");
+                    return COMMAND_INVALID;
+                }
             }
             game->setup_initial_money = money;
             game->setup_step = SETUP_ROLE_SELECTION;
             game->setup_choosing = 0;
-            write_available_roles(message, message_size,
-                                  game->setup_chosen, 0, 1);
+            {
+                char roles[1024];
+                write_available_roles(roles, sizeof(roles),
+                                      game->setup_chosen, 0, 1);
+                (void)snprintf(message, message_size,
+                               "初始资金确定为 %d 元。\n%s", money, roles);
+            }
             return COMMAND_OK;
         }
         case SETUP_ROLE_SELECTION: {
