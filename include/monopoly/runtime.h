@@ -15,9 +15,11 @@ typedef enum RuntimeContext {
     RUNTIME_CONTEXT_MAGIC_HOUSE
 } RuntimeContext;
 
-/* 创建运行时。player_count: 2~4；initial_money: 每位玩家初始资金。
- * 角色按 Q/A/S/J 顺序自动分配。失败返回 NULL。 */
-GameRuntime *runtime_create(int player_count, int initial_money);
+/* 创建运行时。player_count: 2~4；initial_money: 每位玩家初始资金；
+ * chosen_roles: 长度 player_count 的角色编号数组（1~4，对应钱夫人/阿土伯/孙小美/金贝贝）。
+ * 失败返回 NULL。 */
+GameRuntime *runtime_create(int player_count, int initial_money,
+                            const int *chosen_roles);
 
 /* 释放运行时。 */
 void runtime_destroy(GameRuntime *runtime);

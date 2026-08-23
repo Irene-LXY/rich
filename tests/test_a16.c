@@ -4,6 +4,7 @@
 #include "monopoly/runtime.h"
 
 #include <stdio.h>
+#include <string.h>
 
 typedef struct EffectLog {
     int calls;
@@ -15,6 +16,7 @@ typedef struct EffectLog {
 
 static int failures;
 static int tests_run;
+static const int test_roles[2] = {1, 2};
 
 #define CHECK(condition, description) do { \
     ++tests_run; \
@@ -78,7 +80,7 @@ static void test_magic_through_dispatcher(void)
 
     game_init(&game);
     (void)game_start(&game);
-    runtime = runtime_create(2, 1000);
+    runtime = runtime_create(2, 1000, test_roles);
     game.runtime = runtime;
     CHECK(runtime != NULL, "应创建主工程 GameRuntime");
     CHECK(runtime_register_magic_effect(runtime, &effect) == 0,
@@ -98,7 +100,7 @@ static void test_magic_through_dispatcher(void)
           "集成回调参数应正确");
     CHECK(game.context == CONTEXT_TURN_START,
           "施法完成后应结束落地并切换回合");
-    CHECK(runtime_current_player_name(runtime)[0] == 'A',
+    CHECK(strcmp(runtime_current_player_name(runtime), "阿土伯") == 0,
           "A4 应切换到下一位玩家");
     runtime_destroy(runtime);
 }

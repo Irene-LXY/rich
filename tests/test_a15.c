@@ -5,9 +5,11 @@
 
 #include <limits.h>
 #include <stdio.h>
+#include <string.h>
 
 static int failures;
 static int tests_run;
+static const int test_roles[2] = {1, 2};
 
 #define CHECK(condition, description) do { \
     ++tests_run; \
@@ -23,7 +25,7 @@ static Game make_running_game(void)
     char message[256];
     game_init(&game);
     (void)game_start(&game);
-    game.runtime = runtime_create(2, 1000);
+    game.runtime = runtime_create(2, 1000, test_roles);
     if (game.runtime != NULL) {
         (void)runtime_begin(game.runtime, message, sizeof(message));
     }
@@ -45,14 +47,14 @@ static void test_gift_money_through_dispatcher(void)
           "奖金应令玩家资金增加 2000");
     CHECK(game.context == CONTEXT_TURN_START,
           "领取礼品后应结束落地并切换回合");
-    CHECK(runtime_current_player_name(game.runtime)[0] == 'A',
+    CHECK(strcmp(runtime_current_player_name(game.runtime), "阿土伯") == 0,
           "A4 应在礼品选择完成后切换到下一位玩家");
     runtime_destroy(game.runtime);
 }
 
 static void test_points_and_god_of_wealth(void)
 {
-    GameRuntime *runtime = runtime_create(2, 1000);
+    GameRuntime *runtime = runtime_create(2, 1000, test_roles);
     char message[1024];
     CHECK(runtime != NULL, "应创建运行时");
     CHECK(runtime_begin(runtime, message, sizeof(message)) == 0, "应开始回合");
@@ -64,7 +66,7 @@ static void test_points_and_god_of_wealth(void)
           "点数卡应增加 200 点");
     runtime_destroy(runtime);
 
-    runtime = runtime_create(2, 1000);
+    runtime = runtime_create(2, 1000, test_roles);
     CHECK(runtime_begin(runtime, message, sizeof(message)) == 0, "应开始新运行时");
     CHECK(runtime_step(runtime, 35, message, sizeof(message)) == 0,
           "应再次到达礼品屋");

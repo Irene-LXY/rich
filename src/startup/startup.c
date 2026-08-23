@@ -1,5 +1,6 @@
 #include "monopoly/startup.h"
 #include "monopoly/runtime.h"
+#include "monopoly/character.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +9,43 @@ static void write_message(char *message, size_t size, const char *text) {
     if (message != 0 && size > 0) {
         (void)snprintf(message, size, "%s", text);
     }
+}
+
+/* 列出剩余可选角色，并提示下一位玩家输入编号。 */
+static void write_available_roles(char *message, size_t size,
+                                  const int *chosen, int chosen_count,
+                                  int choosing_player)
+{
+    const Character *table = character_table();
+    char buf[1024];
+    size_t used = 0;
+    int i, j;
+    int written;
+
+    written = snprintf(buf, sizeof(buf), "可选角色：");
+    if (written > 0) {
+        used = (size_t)written;
+    }
+    for (i = 0; i < CHARACTER_COUNT; ++i) {
+        int taken = 0;
+        for (j = 0; j < chosen_count; ++j) {
+            if (chosen[j] == (int)table[i].id) {
+                taken = 1;
+                break;
+            }
+        }
+        if (!taken && used < sizeof(buf)) {
+            written = snprintf(buf + used, sizeof(buf) - used,
+                               " %d.%s(%c)", (int)table[i].id,
+                               table[i].name, table[i].symbol);
+            if (written > 0) {
+                used += (size_t)written;
+            }
+        }
+    }
+    (void)snprintf(buf + used, sizeof(buf) - used,
+                   "\n请输入玩家 %d 的角色编号：\n", choosing_player);
+    write_message(message, size, buf);
 }
 
 StartupResult application_start(
@@ -77,17 +115,48 @@ CommandResult startup_handle_input(
                 return COMMAND_INVALID;
             }
             game->setup_initial_money = money;
-            game->runtime = runtime_create(game->setup_player_count, money);
-            if (game->runtime == 0) {
-                write_message(message, message_size, "初始化游戏失败。\n");
+            game->setup_step = SETUP_ROLE_SELECTION;
+            game->setup_choosing = 0;
+            write_available_roles(message, message_size,
+                                  game->setup_chosen, 0, 1);
+            return COMMAND_OK;
+        }
+        case SETUP_ROLE_SELECTION: {
+            int id = (int)strtol(input, 0, 10);
+            int i;
+            if (id < CHARACTER_MIN_ID || id > CHARACTER_MAX_ID) {
+                write_message(message, message_size,
+                              "角色编号必须为 1-4，请重新选择。\n");
                 return COMMAND_INVALID;
             }
-            game->setup_step = SETUP_COMPLETE;
-            (void)runtime_begin(game->runtime, message, message_size);
+            for (i = 0; i < game->setup_choosing; ++i) {
+                if (game->setup_chosen[i] == id) {
+                    write_message(message, message_size,
+                                  "该角色已被选择，请重新选择。\n");
+                    return COMMAND_INVALID;
+                }
+            }
+            game->setup_chosen[game->setup_choosing++] = id;
+            if (game->setup_choosing < game->setup_player_count) {
+                write_available_roles(message, message_size,
+                                      game->setup_chosen,
+                                      game->setup_choosing,
+                                      game->setup_choosing + 1);
+            } else {
+                game->runtime = runtime_create(game->setup_player_count,
+                                               game->setup_initial_money,
+                                               game->setup_chosen);
+                if (game->runtime == 0) {
+                    write_message(message, message_size,
+                                  "初始化游戏失败。\n");
+                    return COMMAND_INVALID;
+                }
+                game->setup_step = SETUP_COMPLETE;
+                (void)runtime_begin(game->runtime, message, message_size);
+            }
             return COMMAND_OK;
         }
         case SETUP_COMPLETE:
-        case SETUP_ROLE_SELECTION:
         default:
             write_message(message, message_size, "游戏已经初始化完成。\n");
             return COMMAND_OK;

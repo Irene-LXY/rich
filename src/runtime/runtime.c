@@ -10,6 +10,7 @@
 #include "monopoly/runtime.h"
 
 #include "monopoly/gift.h"
+#include "monopoly/character.h"
 
 #include "a4/a4_turn_manager.h"
 #include "map/map.h"
@@ -20,10 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* 角色表：Q/A/S/J，按玩家数量顺序分配。 */
-static const char      *ROLE_NAMES[A4_MAX_PLAYERS]      = { "Q", "A", "S", "J" };
-static const char       ROLE_SYMBOLS[A4_MAX_PLAYERS]    = { 'Q', 'A', 'S', 'J' };
-static const ConsoleColor ROLE_COLORS[A4_MAX_PLAYERS]   = {
+/* 角色颜色映射：角色编号 1~4 对应 Q/A/S/J（红/绿/蓝/黄）。 */
+static const ConsoleColor ROLE_COLORS[CHARACTER_COUNT] = {
     COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_YELLOW
 };
 
@@ -229,7 +228,8 @@ static void on_game_finished(
 
 /* ---- 生命周期 ---- */
 
-GameRuntime *runtime_create(int player_count, int initial_money)
+GameRuntime *runtime_create(int player_count, int initial_money,
+                            const int *chosen_roles)
 {
     GameRuntime *rt;
     A4PlayerConfig configs[A4_MAX_PLAYERS];
@@ -254,17 +254,26 @@ GameRuntime *runtime_create(int player_count, int initial_money)
     gift_shop_init(&rt->gift_shop, (size_t)player_count);
     magic_house_init(&rt->magic_house, (size_t)player_count);
 
+    if (chosen_roles == NULL) {
+        free(rt);
+        return NULL;
+    }
     for (i = 0; i < player_count; ++i) {
+        const Character *ch = character_by_id(chosen_roles[i]);
+        if (ch == NULL) {
+            free(rt);
+            return NULL;
+        }
         rt->players[i].id = i + 1;
-        rt->players[i].name = ROLE_NAMES[i];
-        rt->players[i].symbol = ROLE_SYMBOLS[i];
-        rt->players[i].color = ROLE_COLORS[i];
+        rt->players[i].name = ch->name;
+        rt->players[i].symbol = ch->symbol;
+        rt->players[i].color = ROLE_COLORS[chosen_roles[i] - 1];
         rt->players[i].position = 0;
         rt->players[i].active = 1;
         rt->money[i] = initial_money;
 
         configs[i].id = (A4PlayerId)(i + 1);
-        configs[i].role_name = ROLE_NAMES[i];
+        configs[i].role_name = ch->name;
     }
 
     rt->hooks.context = rt;

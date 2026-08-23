@@ -19,6 +19,7 @@ add_library(monopoly_core
     src/runtime/runtime.c
     src/story/gift.c
     src/story/magic.c
+    src/character.c
     src/a4/a4_turn_manager.c
     src/map/map.c
     src/map/game_interfaces.c
