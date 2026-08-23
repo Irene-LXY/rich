@@ -16,7 +16,6 @@ typedef enum {
 typedef enum {
     CONTEXT_TURN_START = 0,
     CONTEXT_BUY_CONFIRM,
-    CONTEXT_UPGRADE_CONFIRM,
     CONTEXT_GIFT_HOUSE,
     CONTEXT_MAGIC_HOUSE,
     CONTEXT_HOSPITAL,
@@ -50,8 +49,6 @@ typedef struct {
     struct GameRuntime *runtime;   /* 集成层运行时，NULL 表示尚未初始化 */
     int setup_player_count;        /* 引导阶段临时：玩家数量 */
     int setup_initial_money;       /* 引导阶段临时：初始资金 */
-    int setup_chosen[4];           /* 引导阶段：已选角色编号（1~4），0 表示未选 */
-    int setup_choosing;            /* 引导阶段：当前选到第几个玩家（0-based） */
 } Game;
 
 void game_init(Game *game);

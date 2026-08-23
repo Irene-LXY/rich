@@ -90,6 +90,8 @@ int game_map_screen_position(int map_index, int *x, int *y) {
 char game_map_base_symbol(const GameMap *map, int index) {
     const MapCell *cell = game_map_cell_at(map, index);
     if (cell == NULL) return '?';
+    if (cell->has_block) return '#';
+    if (cell->has_bomb) return '@';
     switch (cell->type) {
         case CELL_START:       return 'S';
         case CELL_LAND:        return '0';

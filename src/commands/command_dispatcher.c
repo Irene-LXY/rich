@@ -3,11 +3,9 @@
 #include "monopoly/startup.h"
 
 #include <ctype.h>
-#include <errno.h>
-#include <limits.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define COMMAND_BUFFER_SIZE 256
 
@@ -41,48 +39,6 @@ static bool equals_ignore_case(const char *left, const char *right) {
     return *left == '\0' && *right == '\0';
 }
 
-static void sync_runtime_context(Game *game) {
-    switch (runtime_context(game->runtime)) {
-        case RUNTIME_CONTEXT_GIFT_HOUSE:
-            game->context = CONTEXT_GIFT_HOUSE;
-            break;
-        case RUNTIME_CONTEXT_MAGIC_HOUSE:
-            game->context = CONTEXT_MAGIC_HOUSE;
-            break;
-        case RUNTIME_CONTEXT_BUY_CONFIRM:
-            game->context = CONTEXT_BUY_CONFIRM;
-            break;
-        case RUNTIME_CONTEXT_UPGRADE_CONFIRM:
-            game->context = CONTEXT_UPGRADE_CONFIRM;
-            break;
-        case RUNTIME_CONTEXT_TURN_START:
-        default:
-            game->context = CONTEXT_TURN_START;
-            break;
-    }
-}
-
-static bool parse_positive_int(const char *text, int *value) {
-    char *end;
-    long parsed;
-    if (text == 0 || *text == '\0' || value == 0) {
-        return false;
-    }
-    errno = 0;
-    parsed = strtol(text, &end, 10);
-    if (text == end || errno == ERANGE || parsed <= 0 || parsed > INT_MAX) {
-        return false;
-    }
-    while (*end != '\0' && isspace((unsigned char)*end)) {
-        end++;
-    }
-    if (*end != '\0') {
-        return false;
-    }
-    *value = (int)parsed;
-    return true;
-}
-
 CommandResult command_execute(
     Game *game,
     const char *input,
@@ -90,7 +46,6 @@ CommandResult command_execute(
     size_t message_size
 ) {
     char buffer[COMMAND_BUFFER_SIZE];
-    char full_input[COMMAND_BUFFER_SIZE];
     char *text;
     char *arguments;
     char *separator;
@@ -110,8 +65,6 @@ CommandResult command_execute(
         write_message(message, message_size, "命令不能为空。\n");
         return COMMAND_INVALID;
     }
-
-    (void)memcpy(full_input, text, strlen(text) + 1);
 
     separator = text;
     while (*separator != '\0' && !isspace((unsigned char)*separator)) {
@@ -135,59 +88,26 @@ CommandResult command_execute(
     if (equals_ignore_case(text, "quit")) {
         return quit_command_execute(game, arguments, message, message_size);
     }
-
-    /* A15/A16 的选择属于当前落地事件，不作为普通命令解析。 */
-    if (game->context == CONTEXT_GIFT_HOUSE ||
-        game->context == CONTEXT_MAGIC_HOUSE ||
-        game->context == CONTEXT_BUY_CONFIRM ||
-        game->context == CONTEXT_UPGRADE_CONFIRM) {
-        int answer_result = runtime_answer(game->runtime, full_input,
-                                           message, message_size);
-        sync_runtime_context(game);
-        if (answer_result == 0) {
-            return COMMAND_OK;
-        }
-        return answer_result == 1 ? COMMAND_INVALID : COMMAND_NOT_ALLOWED;
-    }
-
     if (equals_ignore_case(text, "roll")) {
         if (arguments[0] != '\0') {
             write_message(message, message_size, "Roll 命令不接受参数。\n");
             return COMMAND_INVALID;
         }
-        if (runtime_roll(game->runtime, message, message_size) != 0) {
-            return COMMAND_NOT_ALLOWED;
-        }
-        sync_runtime_context(game);
+        (void)runtime_roll(game->runtime, message, message_size);
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "step")) {
-        int steps;
-        if (!parse_positive_int(arguments, &steps)) {
-            write_message(message, message_size,
-                          "Step 命令格式为 Step n，n 必须是正整数。\n");
+        char *end;
+        long steps = strtol(arguments, &end, 10);
+        if (end == arguments || *end != '\0' || steps < 0 || steps > 1000) {
+            write_message(message, message_size, "用法：Step n，n 为 0-1000 的测试移动步数。\n");
             return COMMAND_INVALID;
         }
-        if (runtime_step(game->runtime, steps, message, message_size) != 0) {
-            return COMMAND_NOT_ALLOWED;
-        }
-        sync_runtime_context(game);
-        return COMMAND_OK;
+        return runtime_step(game->runtime, (int)steps, message, message_size) == 0
+            ? COMMAND_OK : COMMAND_NOT_ALLOWED;
     }
     if (equals_ignore_case(text, "query")) {
         (void)runtime_query(game->runtime, message, message_size);
-        return COMMAND_OK;
-    }
-    if (equals_ignore_case(text, "sell")) {
-        int position;
-        if (!parse_positive_int(arguments, &position)) {
-            write_message(message, message_size,
-                          "Sell 命令格式为 Sell n，n 为房产位置。\n");
-            return COMMAND_INVALID;
-        }
-        if (runtime_sell(game->runtime, position, message, message_size) != 0) {
-            return COMMAND_NOT_ALLOWED;
-        }
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "map")) {
@@ -197,6 +117,68 @@ CommandResult command_execute(
     if (equals_ignore_case(text, "help")) {
         (void)runtime_help(game->runtime, message, message_size);
         return COMMAND_OK;
+    }
+    if (text[0] >= '1' && text[0] <= '3' && text[1] == '\0') {
+        int choice = text[0] - '0';
+        if (runtime_select_gift(game->runtime, choice, message, message_size) == 0) {
+            return COMMAND_OK;
+        }
+        return runtime_select_shop_item(game->runtime, choice, message, message_size) == 0
+            ? COMMAND_OK : COMMAND_NOT_ALLOWED;
+    }
+    if (equals_ignore_case(text, "shop")) {
+        return runtime_tool_shop(game->runtime, message, message_size) == 0
+            ? COMMAND_OK : COMMAND_NOT_ALLOWED;
+    }
+    if (equals_ignore_case(text, "buy")) {
+        char *end;
+        long tool = strtol(arguments, &end, 10);
+        if (end == arguments || *end != '\0' || tool < 1 || tool > 3) {
+            write_message(message, message_size, "用法：Buy 1（路障）、Buy 2（机器娃娃）、Buy 3（炸弹）。\n");
+            return COMMAND_INVALID;
+        }
+        return runtime_buy_tool(game->runtime, (int)tool, message, message_size) == 0
+            ? COMMAND_OK : COMMAND_NOT_ALLOWED;
+    }
+    if (equals_ignore_case(text, "sell")) {
+        char *end;
+        long position = strtol(arguments, &end, 10);
+        if (end == arguments || *end != '\0' || position < 0 || position >= 70) {
+            write_message(message, message_size, "用法：Sell n，n 为 0-69 的房产编号。\n");
+            return COMMAND_INVALID;
+        }
+        return runtime_sell_property(game->runtime, (int)position,
+                                     message, message_size) == 0
+            ? COMMAND_OK : COMMAND_NOT_ALLOWED;
+    }
+    if (equals_ignore_case(text, "y") || equals_ignore_case(text, "n")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Y/N 命令不接受参数。\n");
+            return COMMAND_INVALID;
+        }
+        return runtime_resolve_landing(game->runtime,
+            equals_ignore_case(text, "y"), message, message_size) == 0
+            ? COMMAND_OK : COMMAND_NOT_ALLOWED;
+    }
+    if (equals_ignore_case(text, "block") || equals_ignore_case(text, "bomb")) {
+        char *end;
+        long distance = strtol(arguments, &end, 10);
+        int tool = equals_ignore_case(text, "block") ? 1 : 3;
+        if (end == arguments || *end != '\0' || distance < -10 || distance > 10) {
+            write_message(message, message_size, "用法：Block n / Bomb n，n 范围为 -10 至 10。\n");
+            return COMMAND_INVALID;
+        }
+        return runtime_place_tool(game->runtime, tool, (int)distance,
+                                  message, message_size) == 0
+            ? COMMAND_OK : COMMAND_NOT_ALLOWED;
+    }
+    if (equals_ignore_case(text, "robot")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Robot 不接受参数。\n");
+            return COMMAND_INVALID;
+        }
+        return runtime_use_robot(game->runtime, message, message_size) == 0
+            ? COMMAND_OK : COMMAND_NOT_ALLOWED;
     }
 
     write_message(message, message_size, "无效或尚未实现的命令。\n");

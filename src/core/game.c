@@ -12,11 +12,6 @@ void game_init(Game *game) {
     game->runtime = 0;
     game->setup_player_count = 0;
     game->setup_initial_money = 0;
-    game->setup_chosen[0] = 0;
-    game->setup_chosen[1] = 0;
-    game->setup_chosen[2] = 0;
-    game->setup_chosen[3] = 0;
-    game->setup_choosing = 0;
 }
 
 bool game_start(Game *game) {

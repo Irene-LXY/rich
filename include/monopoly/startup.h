@@ -2,8 +2,8 @@
 #define MONOPOLY_STARTUP_H
 
 #include <stddef.h>
-#include "monopoly/command.h"
 #include "monopoly/game.h"
+#include "monopoly/command.h"
 
 typedef enum {
     STARTUP_OK = 0,
@@ -20,8 +20,7 @@ StartupResult application_start(
     size_t message_size
 );
 
-/* 引导阶段的输入处理：玩家人数 -> 初始资金 -> 自动分配角色并创建运行时。
- * 返回 COMMAND_OK / COMMAND_INVALID。 */
+/* 与 rich-main-v1_1 主干一致的开局引导入口。 */
 CommandResult startup_handle_input(
     Game *game,
     const char *input,
@@ -30,4 +29,3 @@ CommandResult startup_handle_input(
 );
 
 #endif
-
