@@ -42,6 +42,8 @@ struct GameRuntime {
     GiftShopState gift_shop;
     MagicHouseState magic_house;
     RuntimeContext context;
+    int          pending_position;   /* 待购买/升级的房产位置 */
+    int          pending_price;      /* 待支付价格 */
     MagicEffect magic_effects[MAGIC_EFFECT_CAPACITY];
     size_t magic_effect_count;
     char         notice[NOTICE_CAPACITY];
@@ -103,11 +105,31 @@ static A4MoveResult roll_and_move_impl(
             break;
         case CELL_LAND:
             if (cell->owner_id == RICH_NO_OWNER) {
-                notice_append(rt, "到达无主空地 %d 号（价格 %d 元）。\n",
-                              cell->index, cell->land_price);
+                rt->context = RUNTIME_CONTEXT_BUY_CONFIRM;
+                rt->pending_position = token->position;
+                rt->pending_price = cell->land_price;
+                notice_append(rt,
+                    "到达无主空地 %d 号（价格 %d 元）。是否购买？(Y/N)\n",
+                    cell->index, cell->land_price);
+                return A4_MOVE_LANDING_PENDING;
+            } else if (cell->owner_id == player_id) {
+                rt->context = RUNTIME_CONTEXT_UPGRADE_CONFIRM;
+                rt->pending_position = token->position;
+                rt->pending_price = cell->land_price;
+                notice_append(rt,
+                    "到达自己的房产 %d 号（等级 %d）。是否升级？(Y/N)\n",
+                    cell->index, cell->building_level);
+                return A4_MOVE_LANDING_PENDING;
             } else {
-                notice_append(rt, "到达玩家 %d 的房产 %d 号。\n",
-                              cell->owner_id, cell->index);
+                int toll = cell->land_price / 2;
+                int owner_idx = cell->owner_id - 1;
+                rt->money[idx] -= toll;
+                if (owner_idx >= 0 && owner_idx < rt->player_count) {
+                    rt->money[owner_idx] += toll;
+                }
+                notice_append(rt,
+                    "到达玩家 %d 的房产 %d 号，支付过路费 %d 元。\n",
+                    cell->owner_id, cell->index, toll);
             }
             break;
         case CELL_HOSPITAL:
@@ -396,6 +418,37 @@ int runtime_answer(GameRuntime *rt,
             notice_append(rt, "魔法屋处理失败。\n");
             (void)snprintf(message, message_size, "%s", rt->notice);
             return -1;
+        }
+    } else if (rt->context == RUNTIME_CONTEXT_BUY_CONFIRM) {
+        int yes = answer[0] == 'Y' || answer[0] == 'y';
+        MapCell *cell = game_map_cell_at_mut(&rt->map, rt->pending_position);
+        if (yes && cell != NULL) {
+            if (rt->money[player_index] >= rt->pending_price) {
+                rt->money[player_index] -= rt->pending_price;
+                cell->owner_id = (int)snapshot.current_player_id;
+                cell->building_level = 0;
+                notice_append(rt, "购买成功，成为房产 %d 号的主人。\n",
+                              rt->pending_position);
+            } else {
+                notice_append(rt, "资金不足，无法购买。\n");
+            }
+        } else {
+            notice_append(rt, "放弃购买。\n");
+        }
+    } else if (rt->context == RUNTIME_CONTEXT_UPGRADE_CONFIRM) {
+        int yes = answer[0] == 'Y' || answer[0] == 'y';
+        MapCell *cell = game_map_cell_at_mut(&rt->map, rt->pending_position);
+        if (yes && cell != NULL) {
+            if (rt->money[player_index] >= rt->pending_price) {
+                rt->money[player_index] -= rt->pending_price;
+                ++cell->building_level;
+                notice_append(rt, "升级成功，房产 %d 号升至等级 %d。\n",
+                              rt->pending_position, cell->building_level);
+            } else {
+                notice_append(rt, "资金不足，无法升级。\n");
+            }
+        } else {
+            notice_append(rt, "放弃升级。\n");
         }
     } else {
         (void)snprintf(message, message_size, "当前没有等待处理的落地事件。\n");

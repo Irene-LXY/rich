@@ -12,7 +12,9 @@ typedef struct GameRuntime GameRuntime;
 typedef enum RuntimeContext {
     RUNTIME_CONTEXT_TURN_START = 0,
     RUNTIME_CONTEXT_GIFT_HOUSE,
-    RUNTIME_CONTEXT_MAGIC_HOUSE
+    RUNTIME_CONTEXT_MAGIC_HOUSE,
+    RUNTIME_CONTEXT_BUY_CONFIRM,
+    RUNTIME_CONTEXT_UPGRADE_CONFIRM
 } RuntimeContext;
 
 /* 创建运行时。player_count: 2~4；initial_money: 每位玩家初始资金；

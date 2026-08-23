@@ -49,6 +49,12 @@ static void sync_runtime_context(Game *game) {
         case RUNTIME_CONTEXT_MAGIC_HOUSE:
             game->context = CONTEXT_MAGIC_HOUSE;
             break;
+        case RUNTIME_CONTEXT_BUY_CONFIRM:
+            game->context = CONTEXT_BUY_CONFIRM;
+            break;
+        case RUNTIME_CONTEXT_UPGRADE_CONFIRM:
+            game->context = CONTEXT_UPGRADE_CONFIRM;
+            break;
         case RUNTIME_CONTEXT_TURN_START:
         default:
             game->context = CONTEXT_TURN_START;
@@ -132,7 +138,9 @@ CommandResult command_execute(
 
     /* A15/A16 的选择属于当前落地事件，不作为普通命令解析。 */
     if (game->context == CONTEXT_GIFT_HOUSE ||
-        game->context == CONTEXT_MAGIC_HOUSE) {
+        game->context == CONTEXT_MAGIC_HOUSE ||
+        game->context == CONTEXT_BUY_CONFIRM ||
+        game->context == CONTEXT_UPGRADE_CONFIRM) {
         int answer_result = runtime_answer(game->runtime, full_input,
                                            message, message_size);
         sync_runtime_context(game);
