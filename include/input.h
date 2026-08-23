@@ -18,8 +18,10 @@ int input_read_line(char *buf, size_t size);
 char *input_trim(char *s);
 
 /*
- * 解析“整行必须恰好是一个整数”（允许前导 +/-）。
- * 成功返回 1 并写入 *out；空串或含任何非数字字符均返回 0。
+ * 解析“整行必须恰好是一个纯数字整数”。
+ * 空串或含任何非数字字符（小数点、正负号 +/-、字母、指数、逗号、
+ * 中间空格等）均返回 0；成功返回 1 并写入 *out。
+ * 与初始资金的校验标准一致：人数、角色编号、资金只接受纯数字。
  */
 int input_parse_int(const char *s, long *out);
 

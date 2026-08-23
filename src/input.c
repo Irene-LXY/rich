@@ -39,16 +39,21 @@ char *input_trim(char *s)
 
 int input_parse_int(const char *s, long *out)
 {
-    char *end = NULL;
-    long  v;
+    const char *p;
 
     if (*s == '\0') {
         return 0;
     }
-    v = strtol(s, &end, 10);
-    if (end == s || *end != '\0') {
-        return 0; /* 含非法字符 */
+
+    /* 纯数字校验：拒绝小数、文字、正负号或其他字符
+       （strtol 本身会容忍 '+'/'-' 号，必须先拦住，与初始资金同一标准） */
+    for (p = s; *p != '\0'; ++p) {
+        if (!isdigit((unsigned char)*p)) {
+            return 0;
+        }
     }
-    *out = v;
+
+    /* 全数字串解析（strtol 溢出会得到 LONG_MAX，调用方的范围检查必然拦截） */
+    *out = strtol(s, NULL, 10);
     return 1;
 }
