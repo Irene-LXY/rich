@@ -1,0 +1,6 @@
+D:/大富翁/A4_turn_manager/build/CMakeFiles/a4_turn_manager.dir
+D:/大富翁/A4_turn_manager/build/CMakeFiles/a4_demo.dir
+D:/大富翁/A4_turn_manager/build/CMakeFiles/a4_turn_manager_tests.dir
+D:/大富翁/A4_turn_manager/build/CMakeFiles/test.dir
+D:/大富翁/A4_turn_manager/build/CMakeFiles/edit_cache.dir
+D:/大富翁/A4_turn_manager/build/CMakeFiles/rebuild_cache.dir
