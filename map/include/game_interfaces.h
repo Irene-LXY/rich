@@ -3,70 +3,65 @@
 
 #include "map.h"
 
-#include <functional>
-#include <random>
-#include <string>
-#include <vector>
+#include <stddef.h>
+#include <stdint.h>
 
-namespace rich {
+typedef enum ConsoleColor {
+    COLOR_DEFAULT,
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_BLUE,
+    COLOR_YELLOW
+} ConsoleColor;
 
-enum class ConsoleColor {
-    Default,
-    Red,
-    Green,
-    Blue,
-    Yellow
-};
+/* 地图模块只依赖这份轻量角色数据。 */
+typedef struct PlayerToken {
+    int id;
+    const char *name;
+    char symbol;
+    ConsoleColor color;
+    int position;
+    int active;
+} PlayerToken;
 
-// 地图模块只依赖这份轻量角色数据；完整 Player 可在后续扩展或转换成它。
-struct PlayerToken {
-    int id = 0;
-    std::string name;
-    char symbol = '?';
-    ConsoleColor color = ConsoleColor::Default;
-    int position = 0;
-    bool active = true;
-};
+/* C语言骰子接口：context保存实现数据，roll是掷骰子函数指针。 */
+typedef struct Dice {
+    void *context;
+    int (*roll)(void *context);
+} Dice;
 
-// 骰子抽象接口：正式随机骰子和测试用固定骰子都可接入。
-class IDice {
-public:
-    virtual ~IDice() = default;
-    virtual int roll() = 0;
-};
+typedef struct RandomDice {
+    uint32_t state;
+} RandomDice;
 
-class RandomDice final : public IDice {
-public:
-    RandomDice();
-    explicit RandomDice(unsigned int seed);
-    int roll() override;
+void random_dice_init(RandomDice *dice, uint32_t seed);
+Dice random_dice_as_interface(RandomDice *dice);
+int dice_roll(Dice *dice);
 
-private:
-    std::mt19937 engine_;
-    std::uniform_int_distribution<int> distribution_{1, 6};
-};
+typedef struct MoveContext {
+    int requested_steps;
+    int completed_steps;
+    int interrupted;
+} MoveContext;
 
-struct MoveContext {
-    int requestedSteps = 0;
-    int completedSteps = 0;
-    bool interrupted = false;
-};
+/* 每进入一个格子调用一次。返回0可中断移动，供路障、炸弹使用。 */
+typedef int (*EnterCellHandler)(PlayerToken *player,
+                                const MapCell *cell,
+                                const MoveContext *context,
+                                void *user_data);
 
-// 每进入一个格子调用一次。返回 false 可中断移动，供后续路障、炸弹使用。
-using EnterCellHandler =
-    std::function<bool(PlayerToken&, const MapCell&, const MoveContext&)>;
+MoveContext move_player(const GameMap *map,
+                        PlayerToken *player,
+                        int steps,
+                        EnterCellHandler on_enter,
+                        void *user_data);
 
-MoveContext movePlayer(const GameMap& map,
-                       PlayerToken& player,
-                       int steps,
-                       const EnterCellHandler& onEnter = {});
-
-// 角色只覆盖显示层。同格多人显示人数，不会修改地图真实数据。
-std::string renderMap(const GameMap& map,
-                      const std::vector<PlayerToken>& players,
-                      bool useAnsiColor = false,
-                      bool showIndices = false);
-
-} // namespace rich
+int render_map(const GameMap *map,
+               const PlayerToken *players,
+               size_t player_count,
+               int use_ansi_color,
+               int show_indices,
+               char *buffer,
+               size_t buffer_size);
 
 #endif

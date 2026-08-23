@@ -1,21 +1,21 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(rich_map LANGUAGES CXX)
+project(rich_map LANGUAGES C)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
 add_library(rich_map
-    src/map.cpp
-    src/game_interfaces.cpp
+    src/map.c
+    src/game_interfaces.c
 )
 target_include_directories(rich_map PUBLIC include)
 
-add_executable(rich src/main.cpp)
+add_executable(rich src/main.c)
 target_link_libraries(rich PRIVATE rich_map)
 
-add_executable(map_tests tests/map_tests.cpp)
+add_executable(map_tests tests/map_tests.c)
 target_link_libraries(map_tests PRIVATE rich_map)
 
 enable_testing()
