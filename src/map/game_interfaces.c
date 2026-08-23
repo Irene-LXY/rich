@@ -123,8 +123,21 @@ int render_map(const GameMap *map,
         }
     }
     for (i = 0; i < RICH_MAP_SIZE; ++i) {
+        const MapCell *cell = game_map_cell_at(map, (int)i);
+        size_t player_index;
         game_map_screen_position((int)i, &x, &y);
         canvas[y][x].symbol = game_map_base_symbol(map, (int)i);
+        if (cell == NULL || cell->type != CELL_LAND ||
+            cell->owner_id == RICH_NO_OWNER) {
+            continue;
+        }
+        for (player_index = 0; player_index < player_count; ++player_index) {
+            if (players[player_index].id == cell->owner_id) {
+                canvas[y][x].color = players[player_index].color;
+                canvas[y][x].colored = 1;
+                break;
+            }
+        }
     }
     for (i = 0; i < player_count; ++i) {
         int position;

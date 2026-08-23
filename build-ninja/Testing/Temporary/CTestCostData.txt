@@ -1,0 +1,8 @@
+A15_gift_shop 6 0.00138315
+A16_magic_house 6 0.0012586
+A1_startup 6 0.00141565
+A20_quit 6 0.0016709
+A4_turn_manager 6 0.00149137
+A5_map 6 0.00142305
+A9_A10_A11_property 6 0.00178663
+---

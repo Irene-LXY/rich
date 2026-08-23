@@ -1,6 +1,7 @@
 #include "monopoly/command.h"
 #include "monopoly/runtime.h"
 #include "monopoly/startup.h"
+#include "property/property_system.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -184,9 +185,10 @@ CommandResult command_execute(
     }
     if (equals_ignore_case(text, "sell")) {
         int position;
-        if (!parse_positive_int(arguments, &position)) {
-            write_message(message, message_size,
-                          "Sell 命令格式为 Sell n，n 为房产位置。\n");
+        PropertyCode code = property_parse_sell_command(full_input, &position);
+        if (code != PROPERTY_OK) {
+            (void)snprintf(message, message_size, "%s。\n",
+                           property_code_string(code));
             return COMMAND_INVALID;
         }
         if (runtime_sell(game->runtime, position, message, message_size) != 0) {

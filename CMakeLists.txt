@@ -24,6 +24,7 @@ add_library(monopoly_core
     src/a4/a4_turn_manager.c
     src/map/map.c
     src/map/game_interfaces.c
+    src/property/property_system.c
 )
 target_include_directories(monopoly_core PUBLIC include)
 
@@ -54,3 +55,7 @@ add_test(NAME A4_turn_manager COMMAND test_a4)
 add_executable(test_map tests/test_map.c)
 target_link_libraries(test_map PRIVATE monopoly_core)
 add_test(NAME A5_map COMMAND test_map)
+
+add_executable(test_property tests/test_property.c)
+target_link_libraries(test_property PRIVATE monopoly_core)
+add_test(NAME A9_A10_A11_property COMMAND test_property)

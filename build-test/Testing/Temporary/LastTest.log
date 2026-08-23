@@ -1,0 +1,99 @@
+Start testing: Aug 23 15:10 中国标准时间
+----------------------------------------------------------
+1/6 Testing: A15_gift_shop
+1/6 Test: A15_gift_shop
+Command: "D:/test/rich/build-test/test_a15.exe"
+Directory: D:/test/rich/build-test
+"A15_gift_shop" start time: Aug 23 15:10 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] A15: 22 assertions passed.
+<end of output>
+Test time =   0.11 sec
+----------------------------------------------------------
+Test Passed.
+"A15_gift_shop" end time: Aug 23 15:10 中国标准时间
+"A15_gift_shop" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/6 Testing: A16_magic_house
+2/6 Test: A16_magic_house
+Command: "D:/test/rich/build-test/test_a16.exe"
+Directory: D:/test/rich/build-test
+"A16_magic_house" start time: Aug 23 15:10 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] A16: 21 assertions passed.
+<end of output>
+Test time =   0.13 sec
+----------------------------------------------------------
+Test Passed.
+"A16_magic_house" end time: Aug 23 15:10 中国标准时间
+"A16_magic_house" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/6 Testing: A1_startup
+3/6 Test: A1_startup
+Command: "D:/test/rich/build-test/test_a1.exe"
+Directory: D:/test/rich/build-test
+"A1_startup" start time: Aug 23 15:10 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] A1: 16 assertions passed.
+<end of output>
+Test time =   0.13 sec
+----------------------------------------------------------
+Test Passed.
+"A1_startup" end time: Aug 23 15:10 中国标准时间
+"A1_startup" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/6 Testing: A20_quit
+4/6 Test: A20_quit
+Command: "D:/test/rich/build-test/test_a20.exe"
+Directory: D:/test/rich/build-test
+"A20_quit" start time: Aug 23 15:10 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] A20: 49 assertions passed.
+<end of output>
+Test time =   0.13 sec
+----------------------------------------------------------
+Test Passed.
+"A20_quit" end time: Aug 23 15:10 中国标准时间
+"A20_quit" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/6 Testing: A4_turn_manager
+5/6 Test: A4_turn_manager
+Command: "D:/test/rich/build-test/test_a4.exe"
+Directory: D:/test/rich/build-test
+"A4_turn_manager" start time: Aug 23 15:10 中国标准时间
+Output:
+----------------------------------------------------------
+A4 turn manager tests passed.
+<end of output>
+Test time =   0.12 sec
+----------------------------------------------------------
+Test Passed.
+"A4_turn_manager" end time: Aug 23 15:10 中国标准时间
+"A4_turn_manager" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/6 Testing: A5_map
+6/6 Test: A5_map
+Command: "D:/test/rich/build-test/test_map.exe"
+Directory: D:/test/rich/build-test
+"A5_map" start time: Aug 23 15:10 中国标准时间
+Output:
+----------------------------------------------------------
+All C map tests passed.
+<end of output>
+Test time =   0.12 sec
+----------------------------------------------------------
+Test Passed.
+"A5_map" end time: Aug 23 15:10 中国标准时间
+"A5_map" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Aug 23 15:10 中国标准时间

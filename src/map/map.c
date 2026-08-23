@@ -94,7 +94,9 @@ char game_map_base_symbol(const GameMap *map, int index) {
     if (cell->has_bomb) return '@';
     switch (cell->type) {
         case CELL_START:       return 'S';
-        case CELL_LAND:        return '0';
+        case CELL_LAND:
+            return (cell->building_level >= 0 && cell->building_level <= 3)
+                ? (char)('0' + cell->building_level) : '0';
         case CELL_TOOL_SHOP:   return 'T';
         case CELL_GIFT_SHOP:   return 'G';
         case CELL_MAGIC_HOUSE: return 'M';
