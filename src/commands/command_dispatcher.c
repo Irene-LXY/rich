@@ -18,6 +18,27 @@ static void write_message(char *message, size_t size, const char *text) {
     }
 }
 
+static void append_message(char *message, size_t size, const char *text) {
+    size_t used;
+    if (message == 0 || size == 0 || text == 0) {
+        return;
+    }
+    used = strlen(message);
+    if (used < size - 1) {
+        (void)snprintf(message + used, size - used, "%s", text);
+    }
+}
+
+static void complete_post_roll_and_append(Game *game,
+                                          char *message,
+                                          size_t message_size) {
+    char transition[512];
+    if (runtime_complete_post_roll_transition(
+            game->runtime, transition, sizeof(transition)) == 0) {
+        append_message(message, message_size, transition);
+    }
+}
+
 static char *trim(char *text) {
     char *end;
     while (*text != '\0' && isspace((unsigned char)*text)) {
@@ -138,6 +159,28 @@ CommandResult command_execute(
 
     if (equals_ignore_case(text, "quit")) {
         return quit_command_execute(game, arguments, message, message_size);
+    }
+
+    if (runtime_post_roll_transition_pending(game->runtime)) {
+        if (equals_ignore_case(text, "sell") ||
+            equals_ignore_case(text, "block") ||
+            equals_ignore_case(text, "bomb") ||
+            equals_ignore_case(text, "robot")) {
+            write_message(message, message_size,
+                "掷骰后只能处理当前格事件，本回合不能卖房或使用/放置道具。\n");
+            complete_post_roll_and_append(game, message, message_size);
+            return COMMAND_NOT_ALLOWED;
+        }
+        if (equals_ignore_case(text, "help")) {
+            (void)runtime_help(game->runtime, message, message_size);
+            complete_post_roll_and_append(game, message, message_size);
+            return COMMAND_OK;
+        }
+        {
+            char transition[512];
+            (void)runtime_complete_post_roll_transition(
+                game->runtime, transition, sizeof(transition));
+        }
     }
 
     /* A15/A16 的选择属于当前落地事件，不作为普通命令解析。 */

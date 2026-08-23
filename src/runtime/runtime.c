@@ -47,6 +47,7 @@ struct GameRuntime {
     PropertySystem property_system;
     RuntimeContext context;
     int          pending_bankrupt_player_id;
+    int          post_roll_transition_pending;
     MagicEffect magic_effects[MAGIC_EFFECT_CAPACITY];
     size_t magic_effect_count;
     char         notice[NOTICE_CAPACITY];
@@ -80,19 +81,20 @@ static int tool_move_handler(PlayerToken *player, const MapCell *cell,
 {
     ToolMoveContext *move = (ToolMoveContext *)data;
     GameRuntime *rt;
-    (void)player;
-    (void)context;
-    if (move == NULL || cell == NULL) {
+    if (move == NULL || player == NULL || cell == NULL || context == NULL) {
         return 1;
     }
     rt = move->runtime;
     if (cell->has_block) {
+        int direction = context->requested_steps >= 0 ? 1 : -1;
         MapCell *mutable_cell = game_map_cell_at_mut(&rt->map, cell->index);
         if (mutable_cell != NULL) {
             mutable_cell->has_block = 0;
         }
+        player->position = game_map_normalize_position(cell->index - direction);
         move->event = 1;
-        notice_append(rt, "踩到路障，停在 %d 号位置，路障已消失。\n", cell->index);
+        notice_append(rt, "遇到路障，停在 %d 号位置，路障已消失。\n",
+                      player->position);
         return 0;
     }
     if (cell->has_bomb) {
@@ -347,10 +349,12 @@ static void on_player_skipped(
 )
 {
     GameRuntime *rt = (GameRuntime *)context;
+    const char *display_reason;
     (void)remaining_after_skip;
-    (void)note;
+    display_reason = note != NULL && note[0] != '\0'
+        ? note : a4_skip_reason_string(reason);
     notice_append(rt, "玩家 %s 因%s跳过本回合。\n",
-                  snapshot->current_role_name, a4_skip_reason_string(reason));
+                  snapshot->current_role_name, display_reason);
 }
 
 static void on_game_finished(
@@ -576,6 +580,11 @@ int runtime_answer(GameRuntime *rt,
             } else {
                 notice_append(rt, "放弃升级。\n");
             }
+            if (!property_result.accepted &&
+                (property_result.action == PROPERTY_ACTION_BUY ||
+                 property_result.action == PROPERTY_ACTION_UPGRADE)) {
+                rt->post_roll_transition_pending = 1;
+            }
         } else if (property_code == PROPERTY_ERR_INSUFFICIENT_FUNDS) {
             notice_append(rt, "资金不足，无法%s。\n",
                 property_result.action == PROPERTY_ACTION_BUY
@@ -619,6 +628,10 @@ int runtime_answer(GameRuntime *rt,
 
     gift_shop_finish_turn(&rt->gift_shop, player_index);
     rt->context = RUNTIME_CONTEXT_TURN_START;
+    if (rt->post_roll_transition_pending) {
+        (void)snprintf(message, message_size, "%s", rt->notice);
+        return result;
+    }
     status = a4_turn_manager_complete_landing(
         &rt->turn_manager, snapshot.current_player_id, false);
     if (status != A4_TURN_OK) {
@@ -875,6 +888,36 @@ int runtime_is_finished(const GameRuntime *rt)
         return 1;
     }
     return rt->turn_manager.phase == A4_TURN_PHASE_FINISHED;
+}
+
+int runtime_post_roll_transition_pending(const GameRuntime *rt)
+{
+    return rt != NULL ? rt->post_roll_transition_pending : 0;
+}
+
+int runtime_complete_post_roll_transition(GameRuntime *rt,
+                                          char *message,
+                                          size_t message_size)
+{
+    A4TurnSnapshot snapshot;
+    A4TurnStatus status;
+    if (rt == NULL || message == NULL || message_size == 0 ||
+        !rt->post_roll_transition_pending) {
+        return 1;
+    }
+    notice_clear(rt);
+    snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
+    status = a4_turn_manager_complete_landing(
+        &rt->turn_manager, snapshot.current_player_id, false);
+    if (status != A4_TURN_OK) {
+        notice_append(rt, "结束回合失败：%s。\n",
+                      a4_turn_status_string(status));
+        (void)snprintf(message, message_size, "%s", rt->notice);
+        return 1;
+    }
+    rt->post_roll_transition_pending = 0;
+    (void)snprintf(message, message_size, "%s", rt->notice);
+    return 0;
 }
 
 int runtime_player_position(const GameRuntime *rt, size_t player_index)

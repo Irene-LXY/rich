@@ -52,6 +52,10 @@ add_executable(test_a4 tests/test_a4_turn_manager.c)
 target_link_libraries(test_a4 PRIVATE monopoly_core)
 add_test(NAME A4_turn_manager COMMAND test_a4)
 
+add_executable(test_a4_runtime tests/test_a4_runtime.c)
+target_link_libraries(test_a4_runtime PRIVATE monopoly_core)
+add_test(NAME A4_runtime_workbook_regressions COMMAND test_a4_runtime)
+
 add_executable(test_map tests/test_map.c)
 target_link_libraries(test_map PRIVATE monopoly_core)
 add_test(NAME A5_map COMMAND test_map)
