@@ -109,6 +109,24 @@ static int tool_move_handler(PlayerToken *player, const MapCell *cell,
     return 1;
 }
 
+/* 宣布破产（A17）：土地归还系统，只剩一名玩家时由 A4 结束游戏。 */
+static void runtime_declare_bankruptcy(GameRuntime *rt, int idx)
+{
+    int i;
+    notice_append(rt, "玩家 %s 资金不足 0，宣告破产！\n", rt->players[idx].name);
+    for (i = 0; i < RICH_MAP_SIZE; ++i) {
+        MapCell *cell = game_map_cell_at_mut(&rt->map, i);
+        if (cell != NULL && cell->type == CELL_LAND &&
+            cell->owner_id == idx + 1) {
+            cell->owner_id = RICH_NO_OWNER;
+            cell->building_level = 0;
+            notice_append(rt, "位置 %d 的土地归还系统，恢复为空地。\n", i);
+        }
+    }
+    (void)a4_turn_manager_mark_player_out(&rt->turn_manager,
+                                          (A4PlayerId)(idx + 1));
+}
+
 /* ---- A4 hooks 实现 ---- */
 
 /* 掷骰移动（A8 逻辑）。forced_steps>0 用于测试注入。 */
@@ -197,6 +215,9 @@ static A4MoveResult roll_and_move_impl(
                     notice_append(rt,
                         "到达玩家 %d 的房产 %d 号，支付过路费 %d 元。\n",
                         cell->owner_id, cell->index, toll);
+                    if (rt->money[idx] < 0) {
+                        runtime_declare_bankruptcy(rt, idx);
+                    }
                 }
             }
             break;
@@ -638,7 +659,7 @@ int runtime_query(GameRuntime *rt, char *message, size_t message_size)
     state.item_counts[QUERY_ITEM_BLOCK] = (int)rt->tools[idx][1];
     state.item_counts[QUERY_ITEM_ROBOT] = (int)rt->tools[idx][2];
     state.item_counts[QUERY_ITEM_BOMB] = (int)rt->tools[idx][3];
-    state.bankrupt = 0;
+    state.bankrupt = rt->turn_manager.players[idx].participating ? 0 : 1;
 
     return query_format_player(&state, message, message_size) == 0 ? 0 : 1;
 }
