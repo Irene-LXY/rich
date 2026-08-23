@@ -1,23 +1,23 @@
 {
   "schema_version": "1.0",
-  "case_id": "A1-START-001",
-  "case_name": "启动并加载初始状态",
-  "story": "A1",
+  "case_id": "TC-DISPLAY-002",
+  "case_name": "非当前玩家重叠时显示顺序最靠前玩家",
   "map_file": "map.json",
   "preset": {
     "users": [
+      "A",
       "Q",
-      "A"
+      "S"
     ],
-    "current_user": "Q",
+    "current_user": "S",
     "phase": "COMMAND",
     "game_status": "RUNNING",
     "players": [
       {
-        "id": "Q",
-        "fund": 10000,
+        "id": "A",
+        "fund": 1000,
         "credit": 0,
-        "position": 0,
+        "position": 5,
         "status": "NORMAL",
         "remaining_rounds": 0,
         "items": {
@@ -28,8 +28,22 @@
         "god_of_wealth_rounds": 0
       },
       {
-        "id": "A",
-        "fund": 10000,
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 5,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "S",
+        "fund": 1000,
         "credit": 0,
         "position": 0,
         "status": "NORMAL",
@@ -48,19 +62,14 @@
   },
   "actions": [],
   "expected": {
-    "current_user": "Q",
-    "phase": "COMMAND",
-    "game_status": "RUNNING",
-    "players": [
+    "display_players": [
       {
-        "id": "Q",
         "position": 0,
-        "fund": 10000
+        "visible_user": "S"
       },
       {
-        "id": "A",
-        "position": 25,
-        "fund": 10000
+        "position": 5,
+        "visible_user": "A"
       }
     ]
   }

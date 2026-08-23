@@ -1,8 +1,7 @@
 {
   "schema_version": "1.0",
-  "case_id": "A1-START-001",
-  "case_name": "启动并加载初始状态",
-  "story": "A1",
+  "case_id": "TC-QUIT-001",
+  "case_name": "强制退出结束游戏",
   "map_file": "map.json",
   "preset": {
     "users": [
@@ -15,7 +14,7 @@
     "players": [
       {
         "id": "Q",
-        "fund": 10000,
+        "fund": 1000,
         "credit": 0,
         "position": 0,
         "status": "NORMAL",
@@ -29,9 +28,9 @@
       },
       {
         "id": "A",
-        "fund": 10000,
+        "fund": 1000,
         "credit": 0,
-        "position": 0,
+        "position": 10,
         "status": "NORMAL",
         "remaining_rounds": 0,
         "items": {
@@ -46,22 +45,14 @@
     "map_items": [],
     "dice_sequence": []
   },
-  "actions": [],
+  "actions": [
+    {
+      "command": "QUIT",
+      "params": {}
+    }
+  ],
   "expected": {
-    "current_user": "Q",
-    "phase": "COMMAND",
-    "game_status": "RUNNING",
-    "players": [
-      {
-        "id": "Q",
-        "position": 0,
-        "fund": 10000
-      },
-      {
-        "id": "A",
-        "position": 25,
-        "fund": 10000
-      }
-    ]
+    "game_status": "FINISHED",
+    "phase": "ENDED"
   }
 }

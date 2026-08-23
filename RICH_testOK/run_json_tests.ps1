@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 if ($CaseDir -eq "") {
-    $CaseDir = "C:\Users\48181\Documents\Codex\2026-08-21\yi\outputs\iteration1_automation_template\testcases\iteration1"
+    $CaseDir = Join-Path $PSScriptRoot "automation\testcases\iteration1\expanded"
 }
 
 $script:errors = @()
