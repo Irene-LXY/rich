@@ -599,7 +599,7 @@ int runtime_render(GameRuntime *rt, char *message, size_t message_size)
         return 1;
     }
     return render_map(&rt->map, rt->players, (size_t)rt->player_count,
-                      0, 1, message, message_size) ? 0 : 1;
+                      1, 1, message, message_size) ? 0 : 1;
 }
 
 int runtime_help(GameRuntime *rt, char *message, size_t message_size)
