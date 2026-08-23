@@ -11,6 +11,7 @@
 
 #include "monopoly/gift.h"
 #include "monopoly/character.h"
+#include "monopoly/query.h"
 
 #include "a4/a4_turn_manager.h"
 #include "map/map.h"
@@ -493,29 +494,82 @@ int runtime_register_magic_effect(GameRuntime *rt, const MagicEffect *effect)
 int runtime_query(GameRuntime *rt, char *message, size_t message_size)
 {
     A4TurnSnapshot snapshot;
+    QueryPlayerState state;
     int player_id;
     int idx;
-    char description[128];
-    const MapCell *cell;
+    int i;
     if (rt == NULL || message == NULL || message_size == 0) {
         return 1;
     }
     snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
     player_id = (int)snapshot.current_player_id;
     idx = player_id - 1;
-    cell = game_map_cell_at(&rt->map, rt->players[idx].position);
-    if (cell != NULL) {
-        (void)game_map_cell_description(&rt->map, cell->index,
-                                        description, sizeof(description));
-    } else {
-        (void)snprintf(description, sizeof(description), "未知");
+
+    (void)memset(&state, 0, sizeof(state));
+    state.player_id = player_id;
+    state.player_name = rt->players[idx].name;
+    state.symbol = rt->players[idx].symbol;
+    state.money = rt->money[idx];
+    state.points = gift_shop_points(&rt->gift_shop, (size_t)idx);
+    state.position = rt->players[idx].position;
+    state.fortune_turns = gift_shop_god_rounds(&rt->gift_shop, (size_t)idx);
+
+    for (i = 0; i < RICH_MAP_SIZE; ++i) {
+        const MapCell *cell = &rt->map.cells[i];
+        if (cell->type == CELL_LAND && cell->owner_id == player_id &&
+            state.property_count < QUERY_MAX_PROPERTIES) {
+            state.properties[state.property_count].position = i;
+            state.properties[state.property_count].land_price = cell->land_price;
+            state.properties[state.property_count].building_level =
+                cell->building_level;
+            ++state.property_count;
+        }
     }
-    (void)snprintf(message, message_size,
-        "玩家 %s（%d 号）：位置 %d（%s），资金 %d 元，点数 %d，财神剩余 %d 轮。\n",
-        rt->players[idx].name, player_id, rt->players[idx].position,
-        description, rt->money[idx],
-        gift_shop_points(&rt->gift_shop, (size_t)idx),
-        gift_shop_god_rounds(&rt->gift_shop, (size_t)idx));
+
+    {
+        const A4PlayerState *ap = &rt->turn_manager.players[idx];
+        state.hospital_turns = (ap->skip_reason == A4_SKIP_HOSPITAL)
+            ? (int)ap->skip_turns_remaining : 0;
+        state.prison_turns = (ap->skip_reason == A4_SKIP_PRISON)
+            ? (int)ap->skip_turns_remaining : 0;
+    }
+
+    state.bankrupt = 0;
+
+    return query_format_player(&state, message, message_size) == 0 ? 0 : 1;
+}
+
+int runtime_sell(GameRuntime *rt, int position, char *message, size_t message_size)
+{
+    A4TurnSnapshot snapshot;
+    MapCell *cell;
+    int player_id;
+    int idx;
+    int sale_price;
+    if (rt == NULL || message == NULL || message_size == 0) {
+        return 1;
+    }
+    notice_clear(rt);
+    snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
+    player_id = (int)snapshot.current_player_id;
+    idx = player_id - 1;
+    if (position < 0 || position >= RICH_MAP_SIZE) {
+        notice_append(rt, "位置无效，请输入 0~69 的房产位置。\n");
+        (void)snprintf(message, message_size, "%s", rt->notice);
+        return 1;
+    }
+    cell = game_map_cell_at_mut(&rt->map, position);
+    if (cell == NULL || cell->type != CELL_LAND || cell->owner_id != player_id) {
+        notice_append(rt, "位置 %d 不是你的房产，无法出售。\n", position);
+        (void)snprintf(message, message_size, "%s", rt->notice);
+        return 1;
+    }
+    sale_price = cell->land_price * (cell->building_level + 1) * 2;
+    rt->money[idx] += sale_price;
+    cell->owner_id = RICH_NO_OWNER;
+    cell->building_level = 0;
+    notice_append(rt, "出售房产 %d 号，获得 %d 元。\n", position, sale_price);
+    (void)snprintf(message, message_size, "%s", rt->notice);
     return 0;
 }
 

@@ -49,6 +49,9 @@ int runtime_register_magic_effect(GameRuntime *runtime, const MagicEffect *effec
 /* 查询当前玩家状态（位置、资金、所属地块等）。返回 0 成功。 */
 int runtime_query(GameRuntime *runtime, char *message, size_t message_size);
 
+/* 出售指定位置的自有房产（掷骰前操作）。返回 0 成功。 */
+int runtime_sell(GameRuntime *runtime, int position, char *message, size_t message_size);
+
 /* 渲染地图到 message。返回 0 成功。 */
 int runtime_render(GameRuntime *runtime, char *message, size_t message_size);
 

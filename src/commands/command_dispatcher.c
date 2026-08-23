@@ -178,6 +178,18 @@ CommandResult command_execute(
         (void)runtime_query(game->runtime, message, message_size);
         return COMMAND_OK;
     }
+    if (equals_ignore_case(text, "sell")) {
+        int position;
+        if (!parse_positive_int(arguments, &position)) {
+            write_message(message, message_size,
+                          "Sell 命令格式为 Sell n，n 为房产位置。\n");
+            return COMMAND_INVALID;
+        }
+        if (runtime_sell(game->runtime, position, message, message_size) != 0) {
+            return COMMAND_NOT_ALLOWED;
+        }
+        return COMMAND_OK;
+    }
     if (equals_ignore_case(text, "map")) {
         (void)runtime_render(game->runtime, message, message_size);
         return COMMAND_OK;

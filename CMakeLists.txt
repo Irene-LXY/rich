@@ -16,6 +16,7 @@ add_library(monopoly_core
     src/startup/startup.c
     src/commands/command_dispatcher.c
     src/commands/quit_command.c
+    src/commands/query_format.c
     src/runtime/runtime.c
     src/story/gift.c
     src/story/magic.c
