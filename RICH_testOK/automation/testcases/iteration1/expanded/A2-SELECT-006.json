@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.0",
+  "case_id": "A2-SELECT-006",
+  "case_name": "选择玩家并进入游戏",
+  "story": "A2",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "S",
+      "Q",
+      "A",
+      "J"
+    ],
+    "current_user": "S",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "S",
+        "fund": 10000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "Q",
+        "fund": 10000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 10000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "J",
+        "fund": 10000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [],
+  "expected": {
+    "users": [
+      "S",
+      "Q",
+      "A",
+      "J"
+    ],
+    "current_user": "S",
+    "players": [
+      {
+        "id": "S",
+        "status": "NORMAL"
+      },
+      {
+        "id": "Q",
+        "status": "NORMAL"
+      },
+      {
+        "id": "A",
+        "status": "NORMAL"
+      },
+      {
+        "id": "J",
+        "status": "NORMAL"
+      }
+    ]
+  }
+}

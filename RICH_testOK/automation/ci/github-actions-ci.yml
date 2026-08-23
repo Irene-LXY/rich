@@ -1,0 +1,31 @@
+name: iteration1-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Build test runner
+        shell: cmd
+        run: |
+          cl /nologo /W4 /std:c11 /utf-8 ^
+            /I third_party\cjson ^
+            /I src ^
+            src\test_runner.c ^
+            src\game_engine_stub.c ^
+            third_party\cjson\cJSON.c ^
+            /Fe:rich_test.exe
+
+      - name: Run iteration 1 tests
+        shell: powershell
+        run: .\run_tests.ps1

@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "case_id": "A5-DISPLAY-005",
+  "case_name": "地图显示玩家位置",
+  "story": "A5",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "Q",
+      "A",
+      "S",
+      "J"
+    ],
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 10000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 10000,
+        "credit": 0,
+        "position": 10,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "S",
+        "fund": 10000,
+        "credit": 0,
+        "position": 20,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "J",
+        "fund": 10000,
+        "credit": 0,
+        "position": 30,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [],
+  "expected": {
+    "display_players": [
+      {
+        "position": 0,
+        "visible_user": "Q"
+      },
+      {
+        "position": 10,
+        "visible_user": "A"
+      },
+      {
+        "position": 20,
+        "visible_user": "S"
+      },
+      {
+        "position": 30,
+        "visible_user": "J"
+      }
+    ]
+  }
+}

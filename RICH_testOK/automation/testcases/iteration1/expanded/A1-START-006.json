@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "case_id": "A1-START-006",
+  "case_name": "启动并加载初始状态",
+  "story": "A1",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "Q",
+      "A",
+      "S"
+    ],
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 10000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "S",
+        "fund": 50000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [],
+  "expected": {
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "position": 0,
+        "fund": 1000
+      },
+      {
+        "id": "A",
+        "position": 0,
+        "fund": 10000
+      },
+      {
+        "id": "S",
+        "position": 0,
+        "fund": 50000
+      }
+    ]
+  }
+}

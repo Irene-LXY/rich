@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "case_id": "TC-TURN-004",
+  "case_name": "三人依次进行回合后轮转回起点",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "Q",
+      "A",
+      "S"
+    ],
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "S",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 70
+      }
+    },
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 70
+      }
+    },
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 70
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "Q",
+    "phase": "COMMAND"
+  }
+}

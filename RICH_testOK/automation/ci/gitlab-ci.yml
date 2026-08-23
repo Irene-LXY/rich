@@ -1,0 +1,26 @@
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  image: gcc:latest
+  script:
+    - gcc -std=c11 -Wall -Wextra
+      -I third_party/cjson
+      -I src
+      src/test_runner.c
+      src/game_engine_stub.c
+      third_party/cjson/cJSON.c
+      -o rich_test
+  artifacts:
+    paths:
+      - rich_test
+
+test:
+  stage: test
+  image: gcc:latest
+  dependencies:
+    - build
+  script:
+    - sh ci/run_ci.sh
