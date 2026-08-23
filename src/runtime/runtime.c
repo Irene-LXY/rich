@@ -160,6 +160,13 @@ static A4MoveResult roll_and_move_impl(
 
     notice_append(rt, "移动到位置 %d。\n", token->position);
 
+    if (tool_ctx.event == 2) {
+        /* 炸弹已送医院并住院，跳过落地处理避免重复 */
+        gift_shop_finish_turn(&rt->gift_shop, (size_t)idx);
+        rt->context = RUNTIME_CONTEXT_TURN_START;
+        return A4_MOVE_RESOLVED;
+    }
+
     cell = game_map_cell_at(&rt->map, token->position);
     if (cell == NULL) {
         return A4_MOVE_RESOLVED;
@@ -239,6 +246,12 @@ static A4MoveResult roll_and_move_impl(
                           cell->mine_points, rt->gift_shop.points[idx]);
             break;
         case CELL_TOOL_SHOP:
+            if (rt->gift_shop.points[idx] < 30 ||
+                rt->tools[idx][1] + rt->tools[idx][2] +
+                rt->tools[idx][3] >= 10U) {
+                notice_append(rt, "到达道具屋，但点数不足或背包已满，自动退出。\n");
+                break;
+            }
             rt->context = RUNTIME_CONTEXT_TOOL_SHOP;
             notice_append(rt,
                 "到达道具屋。欢迎光临，请输入 1/2/3 选择道具：\n"
