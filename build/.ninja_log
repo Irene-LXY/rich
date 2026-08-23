@@ -1,7 +1,0 @@
-# ninja log v5
-29	194	8091556869998271	CMakeFiles/a4_turn_manager.dir/src/a4_turn_manager.c.obj	49dab0533b70ae27
-41	201	8091556869998271	CMakeFiles/a4_turn_manager_tests.dir/tests/test_a4_turn_manager.c.obj	165b8cbae8773bcb
-195	343	8091556871415095	a4_turn_manager.lib	54e2607820cdaecc
-343	708	8091556874648585	a4_demo.exe	5b29fba47386ade6
-36	201	8091556870065737	CMakeFiles/a4_demo.dir/examples/demo.c.obj	ec5001cd70003895
-348	708	8091556874648585	a4_turn_manager_tests.exe	6baaa2b7dfd1b281
