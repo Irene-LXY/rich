@@ -1,8 +1,10 @@
 # 编译产物
-build/
+build/*
+!build/monopoly.exe
 build_c/
 build_cpp/
 *.exe
+!build/monopoly.exe
 *.obj
 *.o
 *.a
