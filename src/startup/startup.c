@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static void write_message(char *message, size_t size, const char *text) {
     if (message != 0 && size > 0) {
@@ -38,40 +39,138 @@ static int parse_strict_int(const char *input, long *value) {
     return 1;
 }
 
-/* 列出剩余可选角色，并提示下一位玩家输入编号。 */
-static void write_available_roles(char *message, size_t size,
-                                  const int *chosen, int chosen_count,
-                                  int choosing_player)
+/*
+ * 解析“组合选择输入”：一行 2~4 位数字，
+ * 位数即玩家人数，第 i 位数字是 玩家i 选择的角色编号（1~4）。
+ *   例："21"   → 玩家1=2号阿土伯，玩家2=1号钱夫人
+ *       "312"  → 玩家1=3号孙小美，玩家2=1号钱夫人，玩家3=2号阿土伯
+ *       "4321" → 4 名玩家依次为 4/3/2/1 号角色
+ *
+ * 校验顺序（任一失败即写入带原因的提示并返回 0，不产生任何数据）：
+ *   1. 字符校验：必须全部为数字——小数点、正负号、字母、中间空格等一律拒绝；
+ *   2. 长度校验：位数即人数，仅允许 2~4 位（空串 / 1 位 / 5 位以上都在这里拦）；
+ *   3. 编号校验：每位必须是已存在的角色编号 1~4（0、5~9 报“不存在”）；
+ *   4. 重复校验：同一局内角色不得重复。
+ * 合法返回 1 并写入 *player_count / chosen[]。
+ */
+static int parse_selection_line(const char *input, int *player_count, int chosen[],
+                                char *message, size_t message_size)
+{
+    size_t length = strlen(input);
+    size_t i, j;
+    int    taken[CHARACTER_COUNT + 1] = {0};
+
+    /* 1. 字符校验：必须全部是数字（垃圾字符优先提示，与资金模块口径一致） */
+    for (i = 0; i < length; ++i) {
+        if (!isdigit((unsigned char)input[i])) {
+            write_message(message, message_size,
+                          "输入无效：请输入数字形式的角色编号（1~4），不接受正负号、小数点、字母或其他字符，请重新输入。\n");
+            return 0;
+        }
+    }
+
+    /* 2. 长度校验：位数即玩家人数，仅允许 2~4 位 */
+    if (length < 2 || length > 4) {
+        write_message(message, message_size,
+                      "输入无效：本游戏仅支持 2~4 名玩家，请输入 2~4 位角色编号组合（如 21、312、4321），请重新输入。\n");
+        return 0;
+    }
+
+    /* 3. 编号校验：每位必须是已存在的角色编号（1~4） */
+    for (i = 0; i < length; ++i) {
+        int id = input[i] - '0';
+        if (!character_id_valid(id)) {
+            char reason[256];
+            (void)snprintf(reason, sizeof(reason),
+                           "输入无效：不存在编号为 %d 的角色（第 %d 位），可选编号为 1~4，请重新输入。\n",
+                           id, (int)i + 1);
+            write_message(message, message_size, reason);
+            return 0;
+        }
+    }
+
+    /* 4. 重复校验：同一局内角色不得重复 */
+    for (i = 0; i < length; ++i) {
+        int id = input[i] - '0';
+        if (taken[id]) {
+            int first = 0;
+            char reason[256];
+            for (j = 0; j < i; ++j) {
+                if (input[j] - '0' == id) {
+                    first = (int)j + 1;
+                    break;
+                }
+            }
+            (void)snprintf(reason, sizeof(reason),
+                           "选择失败：角色「%s」已被 玩家%d 选择，同一局内角色不得重复，请重新输入。\n",
+                           character_by_id(id)->name, first);
+            write_message(message, message_size, reason);
+            return 0;
+        }
+        taken[id] = 1;
+    }
+
+    *player_count = (int)length;
+    for (i = 0; i < length; ++i) {
+        chosen[i] = input[i] - '0';
+    }
+    return 1;
+}
+
+/* 组合输入提示：列出全部角色编号，引导一行输入“人数+角色”组合。 */
+static void write_selection_prompt(char *message, size_t size)
 {
     const Character *table = character_table();
-    char buf[1024];
+    char buf[512];
     size_t used = 0;
-    int i, j;
+    int i;
     int written;
 
-    written = snprintf(buf, sizeof(buf), "可选角色：");
+    written = snprintf(buf, sizeof(buf),
+                       "请选择2~4位不重复玩家，输入编号组队（");
     if (written > 0) {
         used = (size_t)written;
     }
     for (i = 0; i < CHARACTER_COUNT; ++i) {
-        int taken = 0;
-        for (j = 0; j < chosen_count; ++j) {
-            if (chosen[j] == (int)table[i].id) {
-                taken = 1;
-                break;
+        if (used < sizeof(buf)) {
+            written = snprintf(buf + used, sizeof(buf) - used, "%s%d.%s",
+                               (i > 0) ? " " : "",
+                               (int)table[i].id, table[i].name);
+            if (written > 0) {
+                used += (size_t)written;
             }
         }
-        if (!taken && used < sizeof(buf)) {
-            written = snprintf(buf + used, sizeof(buf) - used,
-                               " %d.%s(%c)", (int)table[i].id,
-                               table[i].name, table[i].symbol);
+    }
+    (void)snprintf(buf + used, sizeof(buf) - used, "）：\n");
+    write_message(message, size, buf);
+}
+
+/* 回显解析结果（玩家i → 角色），并提示输入初始资金。 */
+static void write_assignment_echo(char *message, size_t size,
+                                  const int *chosen, int player_count)
+{
+    char buf[512];
+    size_t used = 0;
+    int i;
+    int written;
+
+    written = snprintf(buf, sizeof(buf), "已选择 %d 名玩家：", player_count);
+    if (written > 0) {
+        used = (size_t)written;
+    }
+    for (i = 0; i < player_count; ++i) {
+        const Character *c = character_by_id(chosen[i]);
+        if (used < sizeof(buf)) {
+            written = snprintf(buf + used, sizeof(buf) - used, "玩家%d=%s(%c)%s",
+                               i + 1, c->name, c->symbol,
+                               (i + 1 < player_count) ? "，" : "");
             if (written > 0) {
                 used += (size_t)written;
             }
         }
     }
     (void)snprintf(buf + used, sizeof(buf) - used,
-                   "\n请输入玩家 %d 的角色编号：\n", choosing_player);
+                   "\n请输入每位玩家的初始资金：\n");
     write_message(message, size, buf);
 }
 
@@ -101,11 +200,15 @@ StartupResult application_start(
         return STARTUP_INTERNAL_ERROR;
     }
 
-    write_message(
-        message,
-        message_size,
-        "大富翁启动成功。\n开局引导顺序：玩家人数 -> 初始资金 -> 角色选择。\n请输入玩家人数（2-4）：\n"
-    );
+    {
+        char prompt[512];
+        char buf[640];
+        write_selection_prompt(prompt, sizeof(prompt));
+        (void)snprintf(buf, sizeof(buf),
+                       "大富翁启动成功。\n开局引导顺序：角色组队 -> 初始资金。\n%s",
+                       prompt);
+        write_message(message, message_size, buf);
+    }
     return STARTUP_OK;
 }
 
@@ -122,16 +225,24 @@ CommandResult startup_handle_input(
 
     switch (game->setup_step) {
         case SETUP_PLAYER_COUNT: {
-            long parsed = 0;
-            if (!parse_strict_int(input, &parsed) || parsed < 2 || parsed > 4) {
-                write_message(message, message_size,
-                              "玩家数量必须为 2-4，请重新输入：\n");
+            /* 组合输入：一行同时确定玩家人数与每名玩家的角色 */
+            int count = 0;
+            int chosen[4] = {0};
+            if (!parse_selection_line(input, &count, chosen,
+                                      message, message_size)) {
                 return COMMAND_INVALID;
             }
-            game->setup_player_count = (int)parsed;
+            game->setup_player_count = count;
+            game->setup_choosing = count;
+            {
+                int i;
+                for (i = 0; i < count; ++i) {
+                    game->setup_chosen[i] = chosen[i];
+                }
+            }
             game->setup_step = SETUP_INITIAL_MONEY;
-            write_message(message, message_size,
-                          "请输入每位玩家的初始资金：\n");
+            write_assignment_echo(message, message_size,
+                                  game->setup_chosen, count);
             return COMMAND_OK;
         }
         case SETUP_INITIAL_MONEY: {
@@ -142,50 +253,19 @@ CommandResult startup_handle_input(
                 return COMMAND_INVALID;
             }
             game->setup_initial_money = (int)parsed;
-            game->setup_step = SETUP_ROLE_SELECTION;
-            game->setup_choosing = 0;
-            write_available_roles(message, message_size,
-                                  game->setup_chosen, 0, 1);
-            return COMMAND_OK;
-        }
-        case SETUP_ROLE_SELECTION: {
-            long parsed = 0;
-            int id;
-            int i;
-            if (!parse_strict_int(input, &parsed) ||
-                parsed < CHARACTER_MIN_ID || parsed > CHARACTER_MAX_ID) {
+            game->runtime = runtime_create(game->setup_player_count,
+                                           game->setup_initial_money,
+                                           game->setup_chosen);
+            if (game->runtime == 0) {
                 write_message(message, message_size,
-                              "角色编号必须为 1-4，请重新选择。\n");
+                              "初始化游戏失败。\n");
                 return COMMAND_INVALID;
             }
-            id = (int)parsed;
-            for (i = 0; i < game->setup_choosing; ++i) {
-                if (game->setup_chosen[i] == id) {
-                    write_message(message, message_size,
-                                  "该角色已被选择，请重新选择。\n");
-                    return COMMAND_INVALID;
-                }
-            }
-            game->setup_chosen[game->setup_choosing++] = id;
-            if (game->setup_choosing < game->setup_player_count) {
-                write_available_roles(message, message_size,
-                                      game->setup_chosen,
-                                      game->setup_choosing,
-                                      game->setup_choosing + 1);
-            } else {
-                game->runtime = runtime_create(game->setup_player_count,
-                                               game->setup_initial_money,
-                                               game->setup_chosen);
-                if (game->runtime == 0) {
-                    write_message(message, message_size,
-                                  "初始化游戏失败。\n");
-                    return COMMAND_INVALID;
-                }
-                game->setup_step = SETUP_COMPLETE;
-                (void)runtime_begin(game->runtime, message, message_size);
-            }
+            game->setup_step = SETUP_COMPLETE;
+            (void)runtime_begin(game->runtime, message, message_size);
             return COMMAND_OK;
         }
+        case SETUP_ROLE_SELECTION:
         case SETUP_COMPLETE:
         default:
             write_message(message, message_size, "游戏已经初始化完成。\n");

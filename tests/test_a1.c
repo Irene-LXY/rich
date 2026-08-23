@@ -26,10 +26,10 @@ static void test_single_command_starts_setup(void) {
           "Case_A1_001", "单一命令应成功启动");
     CHECK(game.phase == GAME_RUNNING, "Case_A1_001", "成功后游戏实例进入运行状态");
     CHECK(game.setup_step == SETUP_PLAYER_COUNT, "Case_A1_002", "启动后首先进入玩家人数步骤");
-    CHECK(strstr(message, "玩家人数 -> 初始资金 -> 角色选择") != 0,
+    CHECK(strstr(message, "角色组队 -> 初始资金") != 0,
           "Case_A1_002", "应明确显示完整开局引导顺序");
-    CHECK(strstr(message, "请输入玩家人数") != 0,
-          "Case_A1_002", "应自动显示玩家人数输入提示");
+    CHECK(strstr(message, "输入编号组队") != 0,
+          "Case_A1_002", "应自动显示角色组队输入提示");
 }
 
 static void test_invalid_arguments_leave_no_state(void) {
