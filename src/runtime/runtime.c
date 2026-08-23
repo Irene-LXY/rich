@@ -799,12 +799,16 @@ int runtime_help(GameRuntime *rt, char *message, size_t message_size)
     }
     (void)snprintf(message, message_size,
         "可用命令：\n"
-        "  Roll  掷骰子移动\n"
-        "  Step n 遥控骰子移动 n 步（测试用）\n"
-        "  Query 查询当前玩家状态\n"
-        "  Map   显示地图\n"
-        "  Help  显示本帮助\n"
-        "  Quit  结束整局游戏\n");
+        "  Roll      掷骰子移动 1~6 步\n"
+        "  Step n    遥控骰子移动 n 步（测试用）\n"
+        "  Sell n    出售位置 n 的房产\n"
+        "  Block n   在前后 10 步内放置路障（n 为相对距离，负数表示后方）\n"
+        "  Bomb n    在前后 10 步内放置炸弹（n 为相对距离，负数表示后方）\n"
+        "  Robot     使用机器娃娃清扫前方 10 步内的障碍\n"
+        "  Query     查询当前玩家资产\n"
+        "  Map       显示地图\n"
+        "  Help      显示本帮助\n"
+        "  Quit      结束整局游戏\n");
     return 0;
 }
 
