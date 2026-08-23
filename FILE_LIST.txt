@@ -1,0 +1,16 @@
+A7_A18/monopoly/query.h
+A7_A18/monopoly/step.h
+A7_A18/query_format.c
+A7_A18/query_command.c
+A7_A18/step_command.c
+A7_A18/README.md
+CMakeLists.txt
+include/monopoly/command.h
+include/monopoly/runtime.h
+src/commands/command_dispatcher.c
+src/runtime/runtime.c
+src/main.c
+tests/test_a7_a18.c
+docs/A7_A18_INTERFACES.md
+README.md
+MERGE_README.md
