@@ -9,9 +9,9 @@
  */
 #include "monopoly/runtime.h"
 
-#include "a4_turn_manager.h"
-#include "map.h"
-#include "game_interfaces.h"
+#include "a4/a4_turn_manager.h"
+#include "map/map.h"
+#include "map/game_interfaces.h"
 
 #include <stdarg.h>
 #include <stdio.h>
