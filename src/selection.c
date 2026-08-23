@@ -50,22 +50,28 @@ static char *trim(char *s)
 }
 
 /*
- * 解析“整行必须恰好是一个整数”。
- * 成功返回 1 并写入 *out；含任何非数字字符、空串均返回 0。
+ * 解析“整行必须恰好是一个纯数字整数”。
+ * 成功返回 1 并写入 *out；空串或含任何非数字字符均返回 0。
+ * 注意：小数点、正负号（+/-）、字母、指数、逗号、中间空格等一律拒绝，
+ * 与初始资金的校验标准一致（strtol 本身会容忍 '+'/'-' 号，必须先拦住）。
  */
 static int parse_int(const char *s, long *out)
 {
-    char *end = NULL;
-    long  v;
+    const char *p;
 
     if (*s == '\0') {
         return 0;
     }
-    v = strtol(s, &end, 10);
-    if (end == s || *end != '\0') {
-        return 0; /* 含非法字符 */
+
+    /* 纯数字校验：拒绝小数、文字、正负号或其他字符 */
+    for (p = s; *p != '\0'; ++p) {
+        if (!isdigit((unsigned char)*p)) {
+            return 0;
+        }
     }
-    *out = v;
+
+    /* 全数字串解析（strtol 溢出会得到 LONG_MAX，调用方的范围检查必然拦截） */
+    *out = strtol(s, NULL, 10);
     return 1;
 }
 
