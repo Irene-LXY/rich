@@ -1,58 +1,58 @@
-Start testing: Aug 23 16:50 中国标准时间
+Start testing: Aug 25 12:23 中国标准时间
 ----------------------------------------------------------
-1/7 Testing: A15_gift_shop
-1/7 Test: A15_gift_shop
+1/8 Testing: A15_gift_shop
+1/8 Test: A15_gift_shop
 Command: "D:/test/rich/build-ninja/test_a15.exe"
 Directory: D:/test/rich/build-ninja
-"A15_gift_shop" start time: Aug 23 16:50 中国标准时间
+"A15_gift_shop" start time: Aug 25 12:23 中国标准时间
 Output:
 ----------------------------------------------------------
-[PASS] A15: 22 assertions passed.
+[PASS] A15: 26 assertions passed.
 <end of output>
 Test time =   0.01 sec
 ----------------------------------------------------------
 Test Passed.
-"A15_gift_shop" end time: Aug 23 16:50 中国标准时间
+"A15_gift_shop" end time: Aug 25 12:23 中国标准时间
 "A15_gift_shop" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-2/7 Testing: A16_magic_house
-2/7 Test: A16_magic_house
+2/8 Testing: A16_magic_house
+2/8 Test: A16_magic_house
 Command: "D:/test/rich/build-ninja/test_a16.exe"
 Directory: D:/test/rich/build-ninja
-"A16_magic_house" start time: Aug 23 16:50 中国标准时间
+"A16_magic_house" start time: Aug 25 12:23 中国标准时间
 Output:
 ----------------------------------------------------------
-[PASS] A16: 21 assertions passed.
+[PASS] A16: 25 assertions passed.
 <end of output>
 Test time =   0.01 sec
 ----------------------------------------------------------
 Test Passed.
-"A16_magic_house" end time: Aug 23 16:50 中国标准时间
+"A16_magic_house" end time: Aug 25 12:23 中国标准时间
 "A16_magic_house" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-3/7 Testing: A1_startup
-3/7 Test: A1_startup
+3/8 Testing: A1_startup
+3/8 Test: A1_startup
 Command: "D:/test/rich/build-ninja/test_a1.exe"
 Directory: D:/test/rich/build-ninja
-"A1_startup" start time: Aug 23 16:50 中国标准时间
+"A1_startup" start time: Aug 25 12:23 中国标准时间
 Output:
 ----------------------------------------------------------
-[PASS] A1: 16 assertions passed.
+[PASS] A1: 24 assertions passed.
 <end of output>
 Test time =   0.01 sec
 ----------------------------------------------------------
 Test Passed.
-"A1_startup" end time: Aug 23 16:50 中国标准时间
+"A1_startup" end time: Aug 25 12:23 中国标准时间
 "A1_startup" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-4/7 Testing: A20_quit
-4/7 Test: A20_quit
+4/8 Testing: A20_quit
+4/8 Test: A20_quit
 Command: "D:/test/rich/build-ninja/test_a20.exe"
 Directory: D:/test/rich/build-ninja
-"A20_quit" start time: Aug 23 16:50 中国标准时间
+"A20_quit" start time: Aug 25 12:23 中国标准时间
 Output:
 ----------------------------------------------------------
 [PASS] A20: 49 assertions passed.
@@ -60,15 +60,15 @@ Output:
 Test time =   0.01 sec
 ----------------------------------------------------------
 Test Passed.
-"A20_quit" end time: Aug 23 16:50 中国标准时间
+"A20_quit" end time: Aug 25 12:23 中国标准时间
 "A20_quit" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-5/7 Testing: A4_turn_manager
-5/7 Test: A4_turn_manager
+5/8 Testing: A4_turn_manager
+5/8 Test: A4_turn_manager
 Command: "D:/test/rich/build-ninja/test_a4.exe"
 Directory: D:/test/rich/build-ninja
-"A4_turn_manager" start time: Aug 23 16:50 中国标准时间
+"A4_turn_manager" start time: Aug 25 12:23 中国标准时间
 Output:
 ----------------------------------------------------------
 A4 turn manager tests passed.
@@ -76,31 +76,47 @@ A4 turn manager tests passed.
 Test time =   0.01 sec
 ----------------------------------------------------------
 Test Passed.
-"A4_turn_manager" end time: Aug 23 16:50 中国标准时间
+"A4_turn_manager" end time: Aug 25 12:23 中国标准时间
 "A4_turn_manager" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-6/7 Testing: A5_map
-6/7 Test: A5_map
-Command: "D:/test/rich/build-ninja/test_map.exe"
+6/8 Testing: A4_runtime_workbook_regressions
+6/8 Test: A4_runtime_workbook_regressions
+Command: "D:/test/rich/build-ninja/test_a4_runtime.exe"
 Directory: D:/test/rich/build-ninja
-"A5_map" start time: Aug 23 16:50 中国标准时间
+"A4_runtime_workbook_regressions" start time: Aug 25 12:23 中国标准时间
 Output:
 ----------------------------------------------------------
-All C map tests passed.
+[PASS] A4 workbook regressions: 64 assertions passed.
 <end of output>
 Test time =   0.01 sec
 ----------------------------------------------------------
 Test Passed.
-"A5_map" end time: Aug 23 16:50 中国标准时间
+"A4_runtime_workbook_regressions" end time: Aug 25 12:23 中国标准时间
+"A4_runtime_workbook_regressions" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/8 Testing: A5_map
+7/8 Test: A5_map
+Command: "D:/test/rich/build-ninja/test_map.exe"
+Directory: D:/test/rich/build-ninja
+"A5_map" start time: Aug 25 12:23 中国标准时间
+Output:
+----------------------------------------------------------
+All C map tests passed.
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"A5_map" end time: Aug 25 12:23 中国标准时间
 "A5_map" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-7/7 Testing: A9_A10_A11_property
-7/7 Test: A9_A10_A11_property
+8/8 Testing: A9_A10_A11_property
+8/8 Test: A9_A10_A11_property
 Command: "D:/test/rich/build-ninja/test_property.exe"
 Directory: D:/test/rich/build-ninja
-"A9_A10_A11_property" start time: Aug 23 16:50 中国标准时间
+"A9_A10_A11_property" start time: Aug 25 12:23 中国标准时间
 Output:
 ----------------------------------------------------------
 [PASS] Case_A9_001
@@ -177,11 +193,11 @@ Output:
 A9/A10/A11 property cases: 71/71 passed
 property runtime integration: 20 assertions, 0 failed
 <end of output>
-Test time =   0.01 sec
+Test time =   0.02 sec
 ----------------------------------------------------------
 Test Passed.
-"A9_A10_A11_property" end time: Aug 23 16:50 中国标准时间
+"A9_A10_A11_property" end time: Aug 25 12:23 中国标准时间
 "A9_A10_A11_property" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-End testing: Aug 23 16:50 中国标准时间
+End testing: Aug 25 12:23 中国标准时间

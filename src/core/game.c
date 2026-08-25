@@ -7,7 +7,7 @@ void game_init(Game *game) {
     game->phase = GAME_NOT_STARTED;
     game->context = CONTEXT_TURN_START;
     game->end_reason = END_REASON_NONE;
-    game->setup_step = SETUP_PLAYER_COUNT;
+    game->setup_step = SETUP_INITIAL_MONEY;
     game->state_revision = 0;
     game->runtime = 0;
     game->setup_player_count = 0;
@@ -25,7 +25,7 @@ bool game_start(Game *game) {
     }
     game->phase = GAME_RUNNING;
     game->end_reason = END_REASON_NONE;
-    game->setup_step = SETUP_PLAYER_COUNT;
+    game->setup_step = SETUP_INITIAL_MONEY;
     game->state_revision++;
     return true;
 }

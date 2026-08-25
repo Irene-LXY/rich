@@ -132,6 +132,9 @@ CommandResult command_execute(
     (void)memcpy(buffer, input, strlen(input) + 1);
     text = trim(buffer);
     if (*text == '\0') {
+        if (game->runtime == 0) {
+            return startup_handle_input(game, text, message, message_size);
+        }
         write_message(message, message_size, "命令不能为空。\n");
         return COMMAND_INVALID;
     }
@@ -171,7 +174,7 @@ CommandResult command_execute(
             complete_post_roll_and_append(game, message, message_size);
             return COMMAND_NOT_ALLOWED;
         }
-        if (equals_ignore_case(text, "help")) {
+        if (equals_ignore_case(text, "help") && arguments[0] == '\0') {
             (void)runtime_help(game->runtime, message, message_size);
             complete_post_roll_and_append(game, message, message_size);
             return COMMAND_OK;
@@ -189,6 +192,12 @@ CommandResult command_execute(
         game->context == CONTEXT_BUY_CONFIRM ||
         game->context == CONTEXT_UPGRADE_CONFIRM ||
         game->context == CONTEXT_TOOL_SHOP) {
+        /* 礼品屋中的 Help 只显示帮助，不结束或改变当前礼品选择。 */
+        if (game->context == CONTEXT_GIFT_HOUSE &&
+            equals_ignore_case(text, "help") && arguments[0] == '\0') {
+            (void)runtime_help(game->runtime, message, message_size);
+            return COMMAND_OK;
+        }
         int answer_result = runtime_answer(game->runtime, full_input,
                                            message, message_size);
         sync_runtime_context(game);
@@ -223,6 +232,10 @@ CommandResult command_execute(
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "query")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Query 命令不接受参数。\n");
+            return COMMAND_INVALID;
+        }
         (void)runtime_query(game->runtime, message, message_size);
         return COMMAND_OK;
     }
@@ -265,10 +278,18 @@ CommandResult command_execute(
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "map")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Map 命令不接受参数。\n");
+            return COMMAND_INVALID;
+        }
         (void)runtime_render(game->runtime, message, message_size);
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "help")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Help 命令不接受参数。\n");
+            return COMMAND_INVALID;
+        }
         (void)runtime_help(game->runtime, message, message_size);
         return COMMAND_OK;
     }

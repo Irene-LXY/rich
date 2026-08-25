@@ -86,7 +86,7 @@ static void test_bomb_skip_reason(void)
     runtime_destroy(game.runtime);
 }
 
-static void test_block_stops_before_cell(void)
+static void test_block_stops_on_cell(void)
 {
     Game game = make_running_game();
     char message[2048];
@@ -100,16 +100,61 @@ static void test_block_stops_before_cell(void)
           "Case_A4_010", "应在31号位置放置路障");
     CHECK(execute(&game, "Step 6", message, sizeof(message)) == COMMAND_OK,
           "Case_A4_010", "移动应被路障中断");
-    CHECK(runtime_player_position(game.runtime, 0) == 30,
-          "Case_A4_010", "玩家应停在31号路障前的30号位置");
-    CHECK(strstr(message, "停在 30 号位置") != NULL,
-          "Case_A4_010", "提示应显示路障前的停止位置");
-    CHECK(strstr(message, "到达无主空地 31") == NULL,
-          "Case_A4_010", "不得继续处理路障所在格的落点事件");
+    CHECK(runtime_player_position(game.runtime, 0) == 31,
+          "Case_A4_010", "玩家应停在31号路障所在位置");
+    CHECK(strstr(message, "停在 31 号位置") != NULL,
+          "Case_A4_010", "提示应显示路障所在格");
+    CHECK(strstr(message, "到达无主空地 31") != NULL,
+          "Case_A4_010", "应继续处理路障所在格的落点事件");
     if (game.context == CONTEXT_BUY_CONFIRM) {
         (void)execute(&game, "N", message, sizeof(message));
     }
     (void)execute(&game, "Quit", message, sizeof(message));
+    runtime_destroy(game.runtime);
+}
+
+static void test_hospital_visit_does_not_skip(void)
+{
+    Game game = make_running_game();
+    char message[2048];
+    CHECK(execute(&game, "Step 14", message, sizeof(message)) == COMMAND_OK,
+          "Case_A4_Hospital", "应到达医院");
+    CHECK(strstr(message, "探访，无特殊事件") != NULL,
+          "Case_A4_Hospital", "普通到达医院不应住院");
+    CHECK(execute(&game, "Step 1", message, sizeof(message)) == COMMAND_OK &&
+          execute(&game, "N", message, sizeof(message)) == COMMAND_OK &&
+          execute(&game, "Help", message, sizeof(message)) == COMMAND_OK,
+          "Case_A4_Hospital", "下一玩家应正常完成回合");
+    CHECK(strcmp(runtime_current_player_name(game.runtime), "钱夫人") == 0,
+          "Case_A4_Hospital", "探访医院的玩家下一轮不应被跳过");
+    runtime_destroy(game.runtime);
+}
+
+static void finish_declined_land_turn(Game *game, char *message,
+                                      size_t message_size)
+{
+    (void)execute(game, "Step 1", message, message_size);
+    (void)execute(game, "N", message, message_size);
+    (void)execute(game, "Help", message, message_size);
+}
+
+static void test_prison_skips_exactly_two_turns(void)
+{
+    Game game = make_running_game();
+    char message[4096];
+    CHECK(execute(&game, "Step 49", message, sizeof(message)) == COMMAND_OK,
+          "Case_A4_Prison", "应到达监狱");
+    CHECK(strstr(message, "轮空 2 次") != NULL,
+          "Case_A4_Prison", "入狱应声明轮空两次");
+    finish_declined_land_turn(&game, message, sizeof(message));
+    CHECK(strcmp(runtime_current_player_name(game.runtime), "阿土伯") == 0,
+          "Case_A4_Prison", "第一次轮空后仍应由另一玩家行动");
+    finish_declined_land_turn(&game, message, sizeof(message));
+    CHECK(strcmp(runtime_current_player_name(game.runtime), "阿土伯") == 0,
+          "Case_A4_Prison", "第二次轮空后仍应由另一玩家行动");
+    finish_declined_land_turn(&game, message, sizeof(message));
+    CHECK(strcmp(runtime_current_player_name(game.runtime), "钱夫人") == 0,
+          "Case_A4_Prison", "两次轮空结束后应恢复行动");
     runtime_destroy(game.runtime);
 }
 
@@ -183,13 +228,66 @@ static void test_post_roll_quit_without_next_prompt(void)
     runtime_destroy(game.runtime);
 }
 
+static void test_tool_shop_pdf_boundaries(void)
+{
+    Game game = make_running_game();
+    char message[4096];
+    CHECK(execute(&game, "Step 28", message, sizeof(message)) == COMMAND_OK,
+          "Case_A13_PDF", "零点数玩家应到达道具屋");
+    CHECK(strstr(message, "欢迎光临") != NULL &&
+          strstr(message, "自动退出") != NULL,
+          "Case_A13_PDF", "低于30点应提示后自动退出");
+    CHECK(game.context == CONTEXT_TURN_START &&
+          strcmp(runtime_current_player_name(game.runtime), "阿土伯") == 0,
+          "Case_A13_PDF", "自动退出后应切换玩家");
+    runtime_destroy(game.runtime);
+
+    game = make_running_game();
+    CHECK(execute(&game, "Step 66", message, sizeof(message)) == COMMAND_OK,
+          "Case_A14_001", "钱夫人应取得40点");
+    CHECK(execute(&game, "Step 35", message, sizeof(message)) == COMMAND_OK &&
+          execute(&game, "1", message, sizeof(message)) == COMMAND_OK,
+          "Case_A14_001", "阿土伯应完成礼品屋回合");
+    CHECK(execute(&game, "Step 32", message, sizeof(message)) == COMMAND_OK &&
+          game.context == CONTEXT_TOOL_SHOP,
+          "Case_A14_001", "钱夫人应带40点进入道具屋");
+    CHECK(execute(&game, "3", message, sizeof(message)) == COMMAND_INVALID,
+          "Case_A14_001", "40点不足购买炸弹");
+    CHECK(strstr(message, "已退出道具屋") != NULL &&
+          game.context == CONTEXT_TURN_START,
+          "Case_A14_001", "点数不足后应退出道具屋");
+    runtime_destroy(game.runtime);
+}
+
+static void test_query_segment_and_help_arguments(void)
+{
+    Game game = make_running_game();
+    char message[4096];
+    CHECK(execute(&game, "Step 1", message, sizeof(message)) == COMMAND_OK &&
+          execute(&game, "Y", message, sizeof(message)) == COMMAND_OK,
+          "Case_A7_002", "钱夫人应购买1号地");
+    CHECK(execute(&game, "Step 1", message, sizeof(message)) == COMMAND_OK,
+          "Case_A7_002", "阿土伯应到达1号地并完成交租");
+    CHECK(execute(&game, "Query", message, sizeof(message)) == COMMAND_OK &&
+          strstr(message, "位置1：地段1") != NULL,
+          "Case_A7_002", "Query应显示房产地段编号");
+    CHECK(execute(&game, "Help extra", message, sizeof(message)) == COMMAND_INVALID &&
+          strstr(message, "不接受参数") != NULL,
+          "Case_A6_004", "Help应拒绝多余参数");
+    runtime_destroy(game.runtime);
+}
+
 int main(void)
 {
     test_bomb_skip_reason();
-    test_block_stops_before_cell();
+    test_block_stops_on_cell();
+    test_hospital_visit_does_not_skip();
+    test_prison_skips_exactly_two_turns();
     test_post_roll_sell_rejected();
     test_post_roll_help_then_advance();
     test_post_roll_quit_without_next_prompt();
+    test_tool_shop_pdf_boundaries();
+    test_query_segment_and_help_arguments();
     if (failures == 0) {
         (void)printf("[PASS] A4 workbook regressions: %d assertions passed.\n",
                      assertions);

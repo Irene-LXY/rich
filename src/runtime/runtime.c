@@ -86,12 +86,12 @@ static int tool_move_handler(PlayerToken *player, const MapCell *cell,
     }
     rt = move->runtime;
     if (cell->has_block) {
-        int direction = context->requested_steps >= 0 ? 1 : -1;
         MapCell *mutable_cell = game_map_cell_at_mut(&rt->map, cell->index);
         if (mutable_cell != NULL) {
             mutable_cell->has_block = 0;
         }
-        player->position = game_map_normalize_position(cell->index - direction);
+        /* 路障截停在路障所在格，随后仍按该格类型处理落地事件。 */
+        player->position = cell->index;
         move->event = 1;
         notice_append(rt, "遇到路障，停在 %d 号位置，路障已消失。\n",
                       player->position);
@@ -242,10 +242,7 @@ static A4MoveResult roll_and_move_impl(
             }
             break;
         case CELL_HOSPITAL:
-            notice_append(rt, "进入医院，住院 3 天（轮空 3 次）。\n");
-            (void)a4_turn_manager_set_skip(
-                &rt->turn_manager, (A4PlayerId)player_id,
-                A4_SKIP_HOSPITAL, 3U, "住院");
+            notice_append(rt, "到达医院探访，无特殊事件。\n");
             break;
         case CELL_PRISON:
             notice_append(rt, "进入监狱，扣留 2 天（轮空 2 次）。\n");
@@ -259,10 +256,10 @@ static A4MoveResult roll_and_move_impl(
                           cell->mine_points, rt->gift_shop.points[idx]);
             break;
         case CELL_TOOL_SHOP:
-            if (rt->gift_shop.points[idx] < 30 ||
-                rt->tools[idx][1] + rt->tools[idx][2] +
-                rt->tools[idx][3] >= 10U) {
-                notice_append(rt, "到达道具屋，但点数不足或背包已满，自动退出。\n");
+            if (rt->gift_shop.points[idx] < 30) {
+                notice_append(rt,
+                    "到达道具屋。欢迎光临！当前点数 %d，低于最便宜道具的 30 点，自动退出。\n",
+                    rt->gift_shop.points[idx]);
                 break;
             }
             rt->context = RUNTIME_CONTEXT_TOOL_SHOP;
@@ -270,7 +267,13 @@ static A4MoveResult roll_and_move_impl(
                 "到达道具屋。欢迎光临，请输入 1/2/3 选择道具：\n"
                 "  1 路障（50 点）  2 机器娃娃（30 点）  3 炸弹（50 点）\n"
                 "  F 退出道具屋\n"
-                "当前点数 %d。\n", rt->gift_shop.points[idx]);
+                "当前点数 %d，背包 %u/10。\n",
+                rt->gift_shop.points[idx],
+                rt->tools[idx][1] + rt->tools[idx][2] + rt->tools[idx][3]);
+            if (rt->tools[idx][1] + rt->tools[idx][2] +
+                rt->tools[idx][3] >= 10U) {
+                notice_append(rt, "道具数量已达上限，请输入 F 离开。\n");
+            }
             return A4_MOVE_LANDING_PENDING;
         case CELL_GIFT_SHOP:
             if (gift_shop_begin(&rt->gift_shop, (size_t)idx) != GIFT_OK) {
@@ -371,6 +374,19 @@ static void on_game_finished(
     }
 }
 
+/* 说明书没有规定魔法的具体效果；提供两个可选择的默认占位效果。 */
+static int default_magic_handler(size_t caster_index,
+                                 int effect_id,
+                                 const MagicTarget *target,
+                                 void *context)
+{
+    (void)caster_index;
+    (void)effect_id;
+    (void)target;
+    (void)context;
+    return 0;
+}
+
 /* ---- 生命周期 ---- */
 
 GameRuntime *runtime_create(int player_count, int initial_money,
@@ -398,6 +414,13 @@ GameRuntime *runtime_create(int player_count, int initial_money,
     rt->context = RUNTIME_CONTEXT_TURN_START;
     gift_shop_init(&rt->gift_shop, (size_t)player_count);
     magic_house_init(&rt->magic_house, (size_t)player_count);
+    rt->magic_effects[0].id = 1;
+    rt->magic_effects[0].name = "魔法一";
+    rt->magic_effects[0].handler = default_magic_handler;
+    rt->magic_effects[1].id = 2;
+    rt->magic_effects[1].name = "魔法二";
+    rt->magic_effects[1].handler = default_magic_handler;
+    rt->magic_effect_count = 2U;
     if (property_system_init(&rt->property_system, &rt->map, rt->money,
                              (size_t)player_count) != PROPERTY_OK) {
         free(rt);
@@ -479,6 +502,8 @@ static int runtime_move(GameRuntime *rt,
         int bankrupt_id = rt->pending_bankrupt_player_id;
         rt->pending_bankrupt_player_id = 0;
         rt->players[bankrupt_id - 1].active = 0;
+        (void)memset(rt->tools[bankrupt_id - 1], 0,
+                     sizeof(rt->tools[bankrupt_id - 1]));
         status = a4_turn_manager_mark_player_out(
             &rt->turn_manager, (A4PlayerId)bankrupt_id);
     }
@@ -601,21 +626,22 @@ int runtime_answer(GameRuntime *rt,
         } else if (answer[0] >= '1' && answer[0] <= '3' && answer[1] == '\0') {
             price = (answer[0] == '2') ? 30 : 50;
             if (rt->gift_shop.points[player_index] < price) {
-                notice_append(rt, "点数不足：需要 %d 点，当前 %d 点。\n",
+                notice_append(rt,
+                              "点数不足：需要 %d 点，当前 %d 点。已退出道具屋。\n",
                               price, rt->gift_shop.points[player_index]);
+                result = 1;
+            } else if (rt->tools[player_index][1] +
+                       rt->tools[player_index][2] +
+                       rt->tools[player_index][3] >= 10U) {
+                notice_append(rt, "道具数量已达上限 10，请输入 F 离开。\n");
                 (void)snprintf(message, message_size, "%s", rt->notice);
                 return 1;
+            } else {
+                rt->gift_shop.points[player_index] -= price;
+                rt->tools[player_index][choice]++;
+                notice_append(rt, "购买成功，剩余点数 %d。\n",
+                              rt->gift_shop.points[player_index]);
             }
-            if (rt->tools[player_index][1] + rt->tools[player_index][2] +
-                rt->tools[player_index][3] >= 10U) {
-                notice_append(rt, "道具数量已达上限 10。\n");
-                (void)snprintf(message, message_size, "%s", rt->notice);
-                return 1;
-            }
-            rt->gift_shop.points[player_index] -= price;
-            rt->tools[player_index][choice]++;
-            notice_append(rt, "购买成功，剩余点数 %d。\n",
-                          rt->gift_shop.points[player_index]);
         } else {
             notice_append(rt, "输入无效，请输入 1/2/3 或 F。\n");
             (void)snprintf(message, message_size, "%s", rt->notice);
@@ -839,10 +865,25 @@ int runtime_buy_tool(GameRuntime *rt, int tool, char *message, size_t message_si
 
 int runtime_render(GameRuntime *rt, char *message, size_t message_size)
 {
+    A4TurnSnapshot snapshot;
+    PlayerToken ordered[A4_MAX_PLAYERS];
+    int current_index;
+    int output_index = 0;
+    int i;
     if (rt == NULL || message == NULL || message_size == 0) {
         return 1;
     }
-    return render_map(&rt->map, rt->players, (size_t)rt->player_count,
+    snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
+    current_index = (int)snapshot.current_player_id - 1;
+    if (current_index >= 0 && current_index < rt->player_count) {
+        ordered[output_index++] = rt->players[current_index];
+    }
+    for (i = 0; i < rt->player_count; ++i) {
+        if (i != current_index) {
+            ordered[output_index++] = rt->players[i];
+        }
+    }
+    return render_map(&rt->map, ordered, (size_t)output_index,
                       1, 1, message, message_size) ? 0 : 1;
 }
 
@@ -854,16 +895,16 @@ int runtime_help(GameRuntime *rt, char *message, size_t message_size)
     }
     (void)snprintf(message, message_size,
         "可用命令：\n"
-        "  Roll      掷骰子移动 1~6 步\n"
-        "  Step n    遥控骰子移动 n 步（测试用）\n"
-        "  Sell n    出售位置 n 的房产\n"
-        "  Block n   在前后 10 步内放置路障（n 为相对距离，负数表示后方）\n"
-        "  Bomb n    在前后 10 步内放置炸弹（n 为相对距离，负数表示后方）\n"
-        "  Robot     使用机器娃娃清扫前方 10 步内的障碍\n"
-        "  Query     查询当前玩家资产\n"
-        "  Map       显示地图\n"
-        "  Help      显示本帮助\n"
-        "  Quit      结束整局游戏\n");
+        "  Roll      掷骰子移动 1~6 步；示例：Roll\n"
+        "  Step n    遥控骰子移动 n 步（测试用）；示例：Step 6\n"
+        "  Sell n    出售绝对位置 n 的房产；示例：Sell 18\n"
+        "  Block n   在前后 10 步内放置路障；示例：Block -3\n"
+        "  Bomb n    在前后 10 步内放置炸弹；示例：Bomb 5\n"
+        "  Robot     使用机器娃娃清扫前方 10 步内的障碍；示例：Robot\n"
+        "  Query     查询当前玩家资产；示例：Query\n"
+        "  Map       显示地图；示例：Map\n"
+        "  Help      显示本帮助；示例：Help\n"
+        "  Quit      结束整局游戏；示例：Quit\n");
     return 0;
 }
 

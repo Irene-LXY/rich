@@ -57,7 +57,7 @@ static void test_quit_is_available_in_all_running_contexts(void) {
 }
 
 static void test_invalid_commands_do_not_end_game(void) {
-    const char *invalid[] = {"", "   ", "qui", "quitt", "quit now", "quit a b c", "roll"};
+    const char *invalid[] = {"qui", "quitt", "quit now", "quit a b c", "roll"};
     size_t index;
     for (index = 0; index < sizeof(invalid) / sizeof(invalid[0]); index++) {
         Game game = running_game(CONTEXT_TURN_START);
@@ -66,6 +66,24 @@ static void test_invalid_commands_do_not_end_game(void) {
         CHECK(result == COMMAND_INVALID, "Case_A20_003", "拼写错误、空输入、多余参数及其他命令不能触发 Quit");
         CHECK(game.phase == GAME_RUNNING, "Case_A20_003", "无效输入不得改变游戏状态");
     }
+}
+
+static void test_setup_blank_uses_pdf_default_without_quitting(void) {
+    Game game = running_game(CONTEXT_TURN_START);
+    char message[256];
+    CHECK(command_execute(&game, "", message, sizeof(message)) == COMMAND_OK,
+          "Case_A20_PDF_Default", "开局空输入应采用说明书默认资金");
+    CHECK(game.phase == GAME_RUNNING && game.end_reason == END_REASON_NONE,
+          "Case_A20_PDF_Default", "默认资金输入不能触发Quit");
+}
+
+static void test_misspelled_quit_has_clear_setup_error(void) {
+    Game game = running_game(CONTEXT_TURN_START);
+    char message[256];
+    CHECK(command_execute(&game, "quitt", message, sizeof(message)) == COMMAND_INVALID,
+          "Case_A20_027", "quitt不能触发Quit");
+    CHECK(strstr(message, "无效命令") != NULL && game.phase == GAME_RUNNING,
+          "Case_A20_027", "开局阶段也应给出明确的无效命令原因");
 }
 
 static void test_quit_before_start_is_rejected(void) {
@@ -95,6 +113,8 @@ int main(void) {
     test_quit_ends_whole_game();
     test_quit_is_available_in_all_running_contexts();
     test_invalid_commands_do_not_end_game();
+    test_setup_blank_uses_pdf_default_without_quitting();
+    test_misspelled_quit_has_clear_setup_error();
     test_quit_before_start_is_rejected();
     test_commands_after_quit_are_ignored();
 
