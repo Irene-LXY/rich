@@ -39,18 +39,6 @@ static int parse_strict_int(const char *input, long *value) {
     return 1;
 }
 
-static int is_confirmation(const char *input) {
-    return strcmp(input, "确认") == 0 || strcmp(input, "Y") == 0 ||
-           strcmp(input, "y") == 0 || strcmp(input, "Yes") == 0 ||
-           strcmp(input, "yes") == 0;
-}
-
-static int is_cancellation(const char *input) {
-    return strcmp(input, "取消") == 0 || strcmp(input, "N") == 0 ||
-           strcmp(input, "n") == 0 || strcmp(input, "No") == 0 ||
-           strcmp(input, "no") == 0;
-}
-
 /* PDF 规定角色可以一次输入，例如“12”。 */
 static int parse_combined_roles(const char *input, int *roles, int *count) {
     size_t length;
@@ -126,6 +114,18 @@ static void write_combined_role_prompt(char *message, size_t size)
     write_message(message, size, buf);
 }
 
+static void write_money_result_and_role_prompt(int initial_money,
+                                                char *message,
+                                                size_t message_size)
+{
+    char role_prompt[1024];
+
+    write_combined_role_prompt(role_prompt, sizeof(role_prompt));
+    (void)snprintf(message, message_size,
+                   "每位玩家初始资金为 %d 元。\n%s",
+                   initial_money, role_prompt);
+}
+
 StartupResult application_start(
     Game *game,
     int argument_count,
@@ -183,18 +183,6 @@ CommandResult startup_handle_input(
         case SETUP_INITIAL_MONEY: {
             long parsed = 0;
 
-            if (game->setup_initial_money > 0 &&
-                (input[0] == '\0' || is_confirmation(input))) {
-                game->setup_step = SETUP_ROLE_SELECTION;
-                write_combined_role_prompt(message, message_size);
-                return COMMAND_OK;
-            }
-            if (is_cancellation(input)) {
-                game->setup_initial_money = 0;
-                write_message(message, message_size,
-                              "已取消资金设置。请输入初始资金（1000~50000，直接回车默认 10000）：\n");
-                return COMMAND_OK;
-            }
             if (input[0] == '\0') {
                 parsed = 10000;
             } else if (!parse_strict_int(input, &parsed)) {
@@ -208,9 +196,9 @@ CommandResult startup_handle_input(
                 return COMMAND_INVALID;
             }
             game->setup_initial_money = (int)parsed;
-            (void)snprintf(message, message_size,
-                           "每位玩家初始资金为 %d 元。按回车或输入“确认”继续；输入“取消”重新设置：\n",
-                           game->setup_initial_money);
+            game->setup_step = SETUP_ROLE_SELECTION;
+            write_money_result_and_role_prompt(game->setup_initial_money,
+                                               message, message_size);
             return COMMAND_OK;
         }
         case SETUP_ROLE_SELECTION: {

@@ -95,10 +95,9 @@ static void test_pdf_setup_flow(void) {
     (void)application_start(&game, 1, arguments, message, sizeof(message));
     CHECK(command_execute(&game, "", message, sizeof(message)) == COMMAND_OK,
           "Case_A2_PDF_001", "直接回车应采用默认资金10000");
-    CHECK(game.runtime == NULL && strstr(message, "按回车") != NULL,
-          "Case_A2_PDF_Confirm", "默认资金应进入确认环节");
-    CHECK(command_execute(&game, "", message, sizeof(message)) == COMMAND_OK,
-          "Case_A2_PDF_Confirm", "资金确认环节回车应确认");
+    CHECK(game.runtime == NULL && game.setup_step == SETUP_ROLE_SELECTION &&
+          strstr(message, "请选择 2~4 位") != NULL,
+          "Case_A2_NoConfirm", "默认资金后应直接进入角色选择");
     CHECK(command_execute(&game, "12", message, sizeof(message)) == COMMAND_OK,
           "Case_A3_PDF_001", "组合角色编号12应创建游戏");
     CHECK(game.runtime != NULL && game.setup_initial_money == 10000 &&
@@ -108,7 +107,7 @@ static void test_pdf_setup_flow(void) {
     runtime_destroy(game.runtime);
 }
 
-static void test_confirmed_setup_flow(void) {
+static void test_explicit_money_setup_flow(void) {
     Game game;
     char message[1024];
     char program[] = "rich";
@@ -119,9 +118,9 @@ static void test_confirmed_setup_flow(void) {
           "Case_A3_LowerBound", "2不能再被误认为玩家人数");
     CHECK(command_execute(&game, "20000", message, sizeof(message)) == COMMAND_OK,
           "Case_A3_001", "应接受合法初始资金");
-    CHECK(command_execute(&game, "", message, sizeof(message)) == COMMAND_OK &&
-          game.setup_step == SETUP_ROLE_SELECTION,
-          "Case_A3_EnterConfirm", "资金确认环节应支持回车确认");
+    CHECK(game.setup_step == SETUP_ROLE_SELECTION &&
+          strstr(message, "请选择 2~4 位") != NULL,
+          "Case_A3_NoConfirm", "合法资金后应直接进入角色选择");
     CHECK(command_execute(&game, "324", message, sizeof(message)) == COMMAND_OK &&
           game.runtime != NULL,
           "Case_A2_Confirm", "324应一次性创建3名玩家");
@@ -140,7 +139,7 @@ int main(void) {
     test_same_instance_cannot_start_twice();
     test_instances_are_isolated();
     test_pdf_setup_flow();
-    test_confirmed_setup_flow();
+    test_explicit_money_setup_flow();
     if (failures == 0) {
         printf("[PASS] A1: %d assertions passed.\n", assertions);
         return 0;

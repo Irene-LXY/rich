@@ -1,3 +1,203 @@
-Start testing: Aug 25 16:05 中国标准时间
+Start testing: Aug 28 15:42 中国标准时间
 ----------------------------------------------------------
-End testing: Aug 25 16:05 中国标准时间
+1/8 Testing: A15_gift_shop
+1/8 Test: A15_gift_shop
+Command: "D:/test/rich/build-ninja/test_a15.exe"
+Directory: D:/test/rich/build-ninja
+"A15_gift_shop" start time: Aug 28 15:42 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] A15: 26 assertions passed.
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"A15_gift_shop" end time: Aug 28 15:42 中国标准时间
+"A15_gift_shop" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/8 Testing: A16_magic_house
+2/8 Test: A16_magic_house
+Command: "D:/test/rich/build-ninja/test_a16.exe"
+Directory: D:/test/rich/build-ninja
+"A16_magic_house" start time: Aug 28 15:42 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] A16: 25 assertions passed.
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"A16_magic_house" end time: Aug 28 15:42 中国标准时间
+"A16_magic_house" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/8 Testing: A1_startup
+3/8 Test: A1_startup
+Command: "D:/test/rich/build-ninja/test_a1.exe"
+Directory: D:/test/rich/build-ninja
+"A1_startup" start time: Aug 28 15:42 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] A1: 25 assertions passed.
+<end of output>
+Test time =   0.15 sec
+----------------------------------------------------------
+Test Passed.
+"A1_startup" end time: Aug 28 15:42 中国标准时间
+"A1_startup" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/8 Testing: A20_quit
+4/8 Test: A20_quit
+Command: "D:/test/rich/build-ninja/test_a20.exe"
+Directory: D:/test/rich/build-ninja
+"A20_quit" start time: Aug 28 15:42 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] A20: 49 assertions passed.
+<end of output>
+Test time =   0.15 sec
+----------------------------------------------------------
+Test Passed.
+"A20_quit" end time: Aug 28 15:42 中国标准时间
+"A20_quit" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/8 Testing: A4_turn_manager
+5/8 Test: A4_turn_manager
+Command: "D:/test/rich/build-ninja/test_a4.exe"
+Directory: D:/test/rich/build-ninja
+"A4_turn_manager" start time: Aug 28 15:42 中国标准时间
+Output:
+----------------------------------------------------------
+A4 turn manager tests passed.
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"A4_turn_manager" end time: Aug 28 15:42 中国标准时间
+"A4_turn_manager" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/8 Testing: A4_runtime_workbook_regressions
+6/8 Test: A4_runtime_workbook_regressions
+Command: "D:/test/rich/build-ninja/test_a4_runtime.exe"
+Directory: D:/test/rich/build-ninja
+"A4_runtime_workbook_regressions" start time: Aug 28 15:42 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] A4 workbook regressions: 64 assertions passed.
+<end of output>
+Test time =   0.19 sec
+----------------------------------------------------------
+Test Passed.
+"A4_runtime_workbook_regressions" end time: Aug 28 15:42 中国标准时间
+"A4_runtime_workbook_regressions" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/8 Testing: A5_map
+7/8 Test: A5_map
+Command: "D:/test/rich/build-ninja/test_map.exe"
+Directory: D:/test/rich/build-ninja
+"A5_map" start time: Aug 28 15:42 中国标准时间
+Output:
+----------------------------------------------------------
+All C map tests passed.
+<end of output>
+Test time =   0.16 sec
+----------------------------------------------------------
+Test Passed.
+"A5_map" end time: Aug 28 15:42 中国标准时间
+"A5_map" time elapsed: 00:00:00
+----------------------------------------------------------
+
+8/8 Testing: A9_A10_A11_property
+8/8 Test: A9_A10_A11_property
+Command: "D:/test/rich/build-ninja/test_property.exe"
+Directory: D:/test/rich/build-ninja
+"A9_A10_A11_property" start time: Aug 28 15:42 中国标准时间
+Output:
+----------------------------------------------------------
+[PASS] Case_A9_001
+[PASS] Case_A9_002
+[PASS] Case_A9_003
+[PASS] Case_A9_004
+[PASS] Case_A9_005
+[PASS] Case_A9_006
+[PASS] Case_A9_007
+[PASS] Case_A9_008
+[PASS] Case_A9_009
+[PASS] Case_A9_010
+[PASS] Case_A9_011
+[PASS] Case_A9_012
+[PASS] Case_A9_013
+[PASS] Case_A9_014
+[PASS] Case_A9_015
+[PASS] Case_A9_016
+[PASS] Case_A10_001
+[PASS] Case_A10_002
+[PASS] Case_A10_003
+[PASS] Case_A10_004
+[PASS] Case_A10_005
+[PASS] Case_A10_006
+[PASS] Case_A10_007
+[PASS] Case_A10_008
+[PASS] Case_A10_009
+[PASS] Case_A10_010
+[PASS] Case_A10_011
+[PASS] Case_A10_012
+[PASS] Case_A10_013
+[PASS] Case_A10_014
+[PASS] Case_A10_015
+[PASS] Case_A10_016
+[PASS] Case_A10_017
+[PASS] Case_A10_018
+[PASS] Case_A10_019
+[PASS] Case_A10_020
+[PASS] Case_A10_021
+[PASS] Case_A10_022
+[PASS] Case_A10_023
+[PASS] Case_A10_024
+[PASS] Case_A10_025
+[PASS] Case_A11_001
+[PASS] Case_A11_002
+[PASS] Case_A11_003
+[PASS] Case_A11_004
+[PASS] Case_A11_005
+[PASS] Case_A11_006
+[PASS] Case_A11_007
+[PASS] Case_A11_008
+[PASS] Case_A11_009
+[PASS] Case_A11_010
+[PASS] Case_A11_011
+[PASS] Case_A11_012
+[PASS] Case_A11_013
+[PASS] Case_A11_014
+[PASS] Case_A11_015
+[PASS] Case_A11_016
+[PASS] Case_A11_017
+[PASS] Case_A11_018
+[PASS] Case_A11_019
+[PASS] Case_A11_020
+[PASS] Case_A11_021
+[PASS] Case_A11_022
+[PASS] Case_A11_023
+[PASS] Case_A11_024
+[PASS] Case_A11_025
+[PASS] Case_A11_026
+[PASS] Case_A11_027
+[PASS] Case_A11_028
+[PASS] Case_A11_029
+[PASS] Case_A11_030
+A9/A10/A11 property cases: 71/71 passed
+property runtime integration: 20 assertions, 0 failed
+<end of output>
+Test time =   0.20 sec
+----------------------------------------------------------
+Test Passed.
+"A9_A10_A11_property" end time: Aug 28 15:42 中国标准时间
+"A9_A10_A11_property" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Aug 28 15:42 中国标准时间
