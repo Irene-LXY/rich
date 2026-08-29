@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "case_id": "TC-ITEM-001",
+  "case_name": "同一回合连续放置路障和炸弹",
+  "map_file": "map.json",
+  "preset": {
+    "users": ["A", "Q"],
+    "current_user": "A",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "A",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {"BLOCK": 1, "BOMB": 1, "ROBOT": 0},
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 20,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {"BLOCK": 0, "BOMB": 0, "ROBOT": 0},
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {"command": "BLOCK", "params": {"offset": 2}},
+    {"command": "BOMB", "params": {"offset": 3}}
+  ],
+  "expected": {
+    "current_user": "A",
+    "phase": "COMMAND",
+    "players": [
+      {"id": "A", "items": {"BLOCK": 0, "BOMB": 0, "ROBOT": 0}}
+    ],
+    "map_items": [
+      {"position": 2, "type": "BLOCK"},
+      {"position": 3, "type": "BOMB"}
+    ]
+  }
+}

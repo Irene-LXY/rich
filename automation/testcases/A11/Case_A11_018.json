@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A11_018",
+  "case_name": "出售礼品屋被拒绝",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "S",
+      "Q"
+    ],
+    "current_user": "S",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "S",
+        "fund": 5000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "SELL",
+      "params": {
+        "position": 35
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "S",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "S",
+        "fund": 5000
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

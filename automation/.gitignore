@@ -1,0 +1,29 @@
+# 构建产物与运行结果
+build/
+build-*/
+*.exe
+*.o
+*.obj
+*.a
+*.lib
+*.pdb
+*.ilk
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+
+# 运行期生成的结果文件
+results.json
+results_interactive.json
+
+# 一键测试时保存的被测程序路径（本机相关，不提交）
+program.txt
+program_interactive.txt
+
+# 编辑器/系统
+.vs/
+.vscode/
+*.user
+.DS_Store
+Thumbs.db

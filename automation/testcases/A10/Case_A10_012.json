@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A10_012",
+  "case_name": "收取地段三摩天楼过路费",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "J",
+      "Q"
+    ],
+    "current_user": "J",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "J",
+        "fund": 5000,
+        "credit": 0,
+        "position": 48,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "Q",
+        "fund": 5000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 50,
+        "owner": "Q",
+        "level": 3
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 2
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "J",
+        "fund": 4400
+      },
+      {
+        "id": "Q",
+        "fund": 5600
+      }
+    ],
+    "properties": [
+      {
+        "position": 50,
+        "owner": "Q",
+        "level": 3
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

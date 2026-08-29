@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A7_020",
+  "case_name": "查询八处房产财神",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "J",
+      "A"
+    ],
+    "current_user": "J",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "J",
+        "fund": 6000,
+        "credit": 250,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 3
+      },
+      {
+        "id": "A",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 8,
+        "owner": "J",
+        "level": 0
+      },
+      {
+        "position": 10,
+        "owner": "J",
+        "level": 0
+      },
+      {
+        "position": 12,
+        "owner": "J",
+        "level": 1
+      },
+      {
+        "position": 13,
+        "owner": "J",
+        "level": 1
+      },
+      {
+        "position": 16,
+        "owner": "J",
+        "level": 2
+      },
+      {
+        "position": 18,
+        "owner": "J",
+        "level": 2
+      },
+      {
+        "position": 20,
+        "owner": "J",
+        "level": 3
+      },
+      {
+        "position": 22,
+        "owner": "J",
+        "level": 3
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "QUERY",
+      "params": {}
+    }
+  ],
+  "expected": {
+    "current_user": "J",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "J",
+        "fund": 6000,
+        "credit": 250,
+        "god_of_wealth_rounds": 3,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        }
+      }
+    ],
+    "properties": [
+      {
+        "position": 8,
+        "owner": "J",
+        "level": 0
+      },
+      {
+        "position": 10,
+        "owner": "J",
+        "level": 0
+      },
+      {
+        "position": 12,
+        "owner": "J",
+        "level": 1
+      },
+      {
+        "position": 13,
+        "owner": "J",
+        "level": 1
+      },
+      {
+        "position": 16,
+        "owner": "J",
+        "level": 2
+      },
+      {
+        "position": 18,
+        "owner": "J",
+        "level": 2
+      },
+      {
+        "position": 20,
+        "owner": "J",
+        "level": 3
+      },
+      {
+        "position": 22,
+        "owner": "J",
+        "level": 3
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

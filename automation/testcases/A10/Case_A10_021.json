@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A10_021",
+  "case_name": "资金为零支付过路费破产",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "S",
+      "J",
+      "Q"
+    ],
+    "current_user": "S",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "S",
+        "fund": 0,
+        "credit": 0,
+        "position": 5,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "J",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 6,
+        "owner": "J",
+        "level": 0
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "J",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "S",
+        "fund": -100,
+        "status": "BANKRUPT"
+      },
+      {
+        "id": "J",
+        "fund": 1000
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

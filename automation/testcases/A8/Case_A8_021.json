@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A8_021",
+  "case_name": "Roll先遇到路障后炸弹被路障拦截",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "Q",
+      "A"
+    ],
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [
+      {
+        "position": 2,
+        "type": "BLOCK"
+      },
+      {
+        "position": 4,
+        "type": "BOMB"
+      }
+    ],
+    "dice_sequence": [
+      6
+    ]
+  },
+  "actions": [
+    {
+      "command": "ROLL",
+      "params": {}
+    }
+  ],
+  "expected": {
+    "current_user": "Q",
+    "phase": "PROMPT",
+    "players": [
+      {
+        "id": "Q",
+        "position": 2
+      }
+    ],
+    "map_items_absent": [
+      2
+    ],
+    "pending_prompt": "BUY"
+  },
+  "expected_result": "PASS"
+}
