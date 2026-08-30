@@ -32,6 +32,12 @@
 #define PATHBUF 4096
 #endif
 
+#ifdef _WIN32
+#define DIR_SEP '\\'
+#else
+#define DIR_SEP '/'
+#endif
+
 /* ------------------------------------------------------------------ */
 /* small helpers                                                       */
 /* ------------------------------------------------------------------ */
@@ -978,6 +984,17 @@ static const char *judge(const JValue *case_obj, const JValue *out_obj, JValue *
             }
         }
 
+        {
+            const char *expected_error_code = object_get_string(case_obj, "expected_error_code");
+            if (expected_error_code != NULL) {
+                if (!error_code_present(program_errors, expected_error_code)) {
+                    char msg[256];
+                    snprintf(msg, sizeof(msg), "expected error code '%s' was not produced", expected_error_code);
+                    append_error(errors, "ASSERT_NOT_FOUND", "actual.errors", NULL, NULL, msg);
+                }
+            }
+        }
+
         *errors_out = errors;
         return (errors->count == 0) ? "PASS" : "FAIL";
     }
@@ -1018,6 +1035,115 @@ static const char *judge(const JValue *case_obj, const JValue *out_obj, JValue *
     return "ERROR";
 }
 
+/* Write a single test object to a temporary JSON file so the program can be
+ * invoked with the usual <case.json> <map.json> contract. */
+static int write_case_to_temp(const JValue *test, size_t index, char *path, size_t pathsz) {
+    const char *tmpdir = getenv("TEMP");
+    if (!tmpdir || !*tmpdir) tmpdir = getenv("TMP");
+    if (!tmpdir || !*tmpdir) tmpdir = ".";
+    snprintf(path, pathsz, "%s%cmonopoly_case_%zu.json", tmpdir, DIR_SEP, index);
+    FILE *f = fopen(path, "wb");
+    if (!f) return -1;
+    json_write(f, test);
+    fclose(f);
+    return 0;
+}
+
+/* Execute one already-parsed case object and record its result. */
+static void run_one_case(const Options *o, CaseList *list, const JValue *case_obj,
+                         const char *case_path) {
+    char err[512] = "";
+    const char *cid = object_get_string(case_obj, "case_id");
+    const char *map_file = object_get_string(case_obj, "map_file");
+    char map_path[PATHBUF];
+    map_path[0] = 0;
+
+    if (o->map) {
+        if (!file_exists(o->map)) snprintf(err, sizeof(err), "map file not found: %s", o->map);
+        else snprintf(map_path, sizeof(map_path), "%s", o->map);
+    } else {
+        char case_dir[PATHBUF];
+        snprintf(case_dir, sizeof(case_dir), "%s", case_path);
+        char *sep = strrchr(case_dir, '\\');
+        if (!sep) sep = strrchr(case_dir, '/');
+        if (sep) *sep = 0; else strcpy(case_dir, ".");
+        char cand[PATHBUF];
+        if (map_file) {
+            snprintf(cand, sizeof(cand), "%s%c%s", case_dir, DIR_SEP, map_file);
+            if (file_exists(cand)) snprintf(map_path, sizeof(map_path), "%s", cand);
+        }
+        if (!map_path[0] && o->map_dir && map_file) {
+            snprintf(cand, sizeof(cand), "%s%c%s", o->map_dir, DIR_SEP, map_file);
+            if (file_exists(cand)) snprintf(map_path, sizeof(map_path), "%s", cand);
+        }
+        if (!map_path[0] && map_file) {
+            snprintf(cand, sizeof(cand), "spec%c%s", DIR_SEP, map_file);
+            if (file_exists(cand)) snprintf(map_path, sizeof(map_path), "%s", cand);
+        }
+    }
+
+    CaseResult r;
+    r.case_id = xstrdup(cid ? cid : file_stem(case_path));
+    r.file = xstrdup(case_path);
+    r.errors = json_new(J_ARRAY);
+
+    if (!map_path[0]) {
+        snprintf(r.result, sizeof(r.result), "ERROR");
+        append_error(r.errors, "INVALID_MAP", "", NULL, NULL,
+                     map_file ? "map file not found" : "case is missing map_file");
+    } else {
+        char *out_text = run_program(o->program, case_path, map_path, err, sizeof(err));
+        if (!out_text) {
+            snprintf(r.result, sizeof(r.result), "ERROR");
+            append_error(r.errors, "PROCESS_ERROR", "", NULL, NULL, err);
+        } else {
+            JValue *out_obj = json_load(out_text, err, sizeof(err));
+            free(out_text);
+            if (!out_obj) {
+                snprintf(r.result, sizeof(r.result), "ERROR");
+                append_error(r.errors, "INVALID_JSON", "", NULL, NULL, err);
+            } else {
+                JValue *errors = NULL;
+                const char *verdict = judge(case_obj, out_obj, &errors);
+                snprintf(r.result, sizeof(r.result), "%s", verdict);
+                json_free(r.errors);
+                r.errors = errors;
+                json_free(out_obj);
+            }
+        }
+    }
+
+    cl_add(list, r);
+}
+
+/* Process one JSON file that may be either a single case object or an
+ * aggregate file containing a top-level "tests" array. */
+static void process_json_file(const Options *o, CaseList *list, const JValue *root,
+                              const char *file_path) {
+    const JValue *tests = (root->type == J_OBJECT) ? object_get(root, "tests") : NULL;
+    if (tests && tests->type == J_ARRAY) {
+        for (size_t ti = 0; ti < tests->count; ti++) {
+            char tmp_path[PATHBUF];
+            if (write_case_to_temp(tests->items[ti], ti, tmp_path, sizeof(tmp_path)) != 0) {
+                CaseResult r;
+                const char *cid = object_get_string(tests->items[ti], "case_id");
+                r.case_id = xstrdup(cid ? cid : "?");
+                r.file = xstrdup(file_path);
+                snprintf(r.result, sizeof(r.result), "ERROR");
+                r.errors = json_new(J_ARRAY);
+                append_error(r.errors, "PROCESS_ERROR", "", NULL, NULL,
+                             "failed to write temporary case file");
+                cl_add(list, r);
+                continue;
+            }
+            run_one_case(o, list, tests->items[ti], tmp_path);
+            remove(tmp_path);
+        }
+    } else {
+        run_one_case(o, list, root, file_path);
+    }
+}
+
 /* ------------------------------------------------------------------ */
 /* main                                                                */
 /* ------------------------------------------------------------------ */
@@ -1027,128 +1153,79 @@ int main(int argc, char **argv) {
     int rc = parse_args(argc, argv, &o);
     if (rc != 0) return 2;
 
-    FileList files;
-    memset(&files, 0, sizeof(files));
-    if (path_is_dir(o.cases)) scan_dir(o.cases, &files);
-    else if (file_exists(o.cases)) fl_add(&files, o.cases);
-    else { fprintf(stderr, "cases path not found: %s\n", o.cases); return 2; }
-    if (files.count == 0) {
-        fprintf(stderr, "no .json test cases found under: %s\n", o.cases);
-        return 2;
-    }
-
     CaseList list;
     memset(&list, 0, sizeof(list));
 
-    for (size_t fi = 0; fi < files.count; fi++) {
-        const char *case_path = files.items[fi];
+    if (path_is_dir(o.cases)) {
+        FileList files;
+        memset(&files, 0, sizeof(files));
+        scan_dir(o.cases, &files);
+        for (size_t fi = 0; fi < files.count; fi++) {
+            const char *case_path = files.items[fi];
+            char err[512] = "";
+            char *text = read_file(case_path, err, sizeof(err));
+            if (!text) {
+                CaseResult r;
+                r.case_id = xstrdup(file_stem(case_path));
+                r.file = xstrdup(case_path);
+                snprintf(r.result, sizeof(r.result), "ERROR");
+                r.errors = json_new(J_ARRAY);
+                append_error(r.errors, "INVALID_JSON", "", NULL, NULL, err);
+                cl_add(&list, r);
+                continue;
+            }
+            JValue *case_obj = json_load(text, err, sizeof(err));
+            free(text);
+            if (!case_obj) {
+                CaseResult r;
+                r.case_id = xstrdup(file_stem(case_path));
+                r.file = xstrdup(case_path);
+                snprintf(r.result, sizeof(r.result), "ERROR");
+                r.errors = json_new(J_ARRAY);
+                append_error(r.errors, "INVALID_JSON", "", NULL, NULL, err);
+                cl_add(&list, r);
+                continue;
+            }
+            process_json_file(&o, &list, case_obj, case_path);
+            json_free(case_obj);
+        }
+        for (size_t i = 0; i < files.count; i++) free(files.items[i]);
+        free(files.items);
+    } else if (file_exists(o.cases)) {
         char err[512] = "";
-
-        char *text = read_file(case_path, err, sizeof(err));
+        char *text = read_file(o.cases, err, sizeof(err));
         if (!text) {
             CaseResult r;
-            r.case_id = xstrdup(file_stem(case_path));
-            r.file = xstrdup(case_path);
+            r.case_id = xstrdup(file_stem(o.cases));
+            r.file = xstrdup(o.cases);
             snprintf(r.result, sizeof(r.result), "ERROR");
             r.errors = json_new(J_ARRAY);
             append_error(r.errors, "INVALID_JSON", "", NULL, NULL, err);
             cl_add(&list, r);
-            continue;
-        }
-
-        JValue *case_obj = json_load(text, err, sizeof(err));
-        free(text);
-        if (!case_obj) {
-            CaseResult r;
-            r.case_id = xstrdup(file_stem(case_path));
-            r.file = xstrdup(case_path);
-            snprintf(r.result, sizeof(r.result), "ERROR");
-            r.errors = json_new(J_ARRAY);
-            append_error(r.errors, "INVALID_JSON", "", NULL, NULL, err);
-            cl_add(&list, r);
-            continue;
-        }
-
-        const char *cid = object_get_string(case_obj, "case_id");
-        const char *map_file = object_get_string(case_obj, "map_file");
-        char map_path[PATHBUF];
-        map_path[0] = 0;
-
-        if (o.map) {
-            if (!file_exists(o.map)) snprintf(err, sizeof(err), "map file not found: %s", o.map);
-            else snprintf(map_path, sizeof(map_path), "%s", o.map);
         } else {
-            char case_dir[PATHBUF];
-            snprintf(case_dir, sizeof(case_dir), "%s", case_path);
-            char *sep = strrchr(case_dir, '\\');
-            if (!sep) sep = strrchr(case_dir, '/');
-            if (sep) *sep = 0; else strcpy(case_dir, ".");
-            char cand[PATHBUF];
-            if (map_file) {
-                snprintf(cand, sizeof(cand), "%s%c%s", case_dir,
-#ifdef _WIN32
-                    '\\',
-#else
-                    '/',
-#endif
-                    map_file);
-                if (file_exists(cand)) snprintf(map_path, sizeof(map_path), "%s", cand);
-            }
-            if (!map_path[0] && o.map_dir && map_file) {
-                snprintf(cand, sizeof(cand), "%s%c%s", o.map_dir,
-#ifdef _WIN32
-                    '\\',
-#else
-                    '/',
-#endif
-                    map_file);
-                if (file_exists(cand)) snprintf(map_path, sizeof(map_path), "%s", cand);
-            }
-            if (!map_path[0] && map_file) {
-                snprintf(cand, sizeof(cand), "spec%c%s",
-#ifdef _WIN32
-                    '\\',
-#else
-                    '/',
-#endif
-                    map_file);
-                if (file_exists(cand)) snprintf(map_path, sizeof(map_path), "%s", cand);
-            }
-        }
-
-        CaseResult r;
-        r.case_id = xstrdup(cid ? cid : file_stem(case_path));
-        r.file = xstrdup(case_path);
-        r.errors = json_new(J_ARRAY);
-
-        if (!map_path[0]) {
-            snprintf(r.result, sizeof(r.result), "ERROR");
-            append_error(r.errors, "INVALID_MAP", "", NULL, NULL,
-                         map_file ? "map file not found" : "case is missing map_file");
-        } else {
-            char *out_text = run_program(o.program, case_path, map_path, err, sizeof(err));
-            if (!out_text) {
+            JValue *root = json_load(text, err, sizeof(err));
+            free(text);
+            if (!root) {
+                CaseResult r;
+                r.case_id = xstrdup(file_stem(o.cases));
+                r.file = xstrdup(o.cases);
                 snprintf(r.result, sizeof(r.result), "ERROR");
-                append_error(r.errors, "PROCESS_ERROR", "", NULL, NULL, err);
+                r.errors = json_new(J_ARRAY);
+                append_error(r.errors, "INVALID_JSON", "", NULL, NULL, err);
+                cl_add(&list, r);
             } else {
-                JValue *out_obj = json_load(out_text, err, sizeof(err));
-                free(out_text);
-                if (!out_obj) {
-                    snprintf(r.result, sizeof(r.result), "ERROR");
-                    append_error(r.errors, "INVALID_JSON", "", NULL, NULL, err);
-                } else {
-                    JValue *errors = NULL;
-                    const char *verdict = judge(case_obj, out_obj, &errors);
-                    snprintf(r.result, sizeof(r.result), "%s", verdict);
-                    json_free(r.errors);
-                    r.errors = errors;
-                    json_free(out_obj);
-                }
+                process_json_file(&o, &list, root, o.cases);
+                json_free(root);
             }
         }
+    } else {
+        fprintf(stderr, "cases path not found: %s\n", o.cases);
+        return 2;
+    }
 
-        cl_add(&list, r);
-        json_free(case_obj);
+    if (list.count == 0) {
+        fprintf(stderr, "no .json test cases found under: %s\n", o.cases);
+        return 2;
     }
 
     size_t total = list.count, pass = 0, fail = 0, errcnt = 0;
@@ -1245,8 +1322,5 @@ int main(int argc, char **argv) {
 
     for (size_t i = 0; i < list.count; i++) result_free(&list.items[i]);
     free(list.items);
-    for (size_t i = 0; i < files.count; i++) free(files.items[i]);
-    free(files.items);
-
     return (fail == 0 && errcnt == 0) ? 0 : 1;
 }

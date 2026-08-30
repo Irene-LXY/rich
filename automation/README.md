@@ -25,8 +25,8 @@ automation/
 ├── spec/
 │   └── map.json          统一地图（70 格）
 ├── testcases/
-│   ├── A4, A7~A21/       正向用例（按 Story 分目录，可跨组共享）
-│   └── land, item, turn/ 手写示例用例
+│   ├── Group1_Testcases.json  一组（本组）测试用例（单文件 tests 数组格式）
+│   └── Group3_Testcases.json  三组测试用例（单文件 tests 数组格式）
 └── README.md
 ```
 
@@ -46,16 +46,16 @@ cmake --build build
 run_tests.exe --program <被测程序> --cases testcases --map spec\map.json
 ```
 
-只跑一个用例：
-
-```powershell
-run_tests.exe --program <被测程序> --cases testcases\land\TC-LAND-001.json --map spec\map.json
-```
+`--cases testcases` 会读取该目录下**所有** `*.json`，每个文件既可以是聚合大 JSON
+（顶层含 `tests` 数组，如 `Group1_Testcases.json`），也可以是单个用例 JSON。
+想只测某一组，就调整 `testcases/` 里的文件（例如只留 `Group3_Testcases.json` 就只测
+三组），然后重新运行即可。
 
 常用参数（详见 [`c/README.md`](c/README.md)）：
 
 - `--program`：被测程序命令（必填）。
-- `--cases`：测试用例文件或目录（必填）。
+- `--cases`：测试用例路径（必填）。可以是聚合文件（含顶层 `tests` 数组的 JSON），
+  也可以是目录（递归读取 `*.json`）或单个用例 JSON 文件。
 - `--map`：地图文件路径。
 - `--map-dir`：`map_file` 的解析目录，默认 `<本目录>/spec`。
 - `--out`：结果输出文件，默认 `results.json`。
@@ -88,22 +88,29 @@ run_tests.exe --program <被测程序> --cases testcases\land\TC-LAND-001.json -
 
 ## 测试用例 JSON 结构
 
-顶层字段（详见接口规范第 6 节）：
+用例推荐采用**单文件聚合格式**（与跨组约定的 `GroupN_Testcases.json` 一致，顶层是
+`tests` 数组）：
 
 ```json
 {
   "schema_version": "1.0",
-  "case_id": "TC-LAND-001",
-  "case_name": "购买地段1空地成功",
-  "map_file": "map.json",
-  "preset": { },
-  "actions": [ ],
-  "expected": { },
-  "expected_result": "PASS",
-  "expected_errors": [ ]
+  "tests": [
+    {
+      "case_id": "TC-LAND-001",
+      "case_name": "购买地段1空地成功",
+      "map_file": "map.json",
+      "preset": { },
+      "actions": [ ],
+      "expected": { }
+    }
+  ]
 }
 ```
 
+`tests` 数组里每个对象就是一个用例，字段含义（详见接口规范第 6 节）：
+
+- `case_id` / `case_name`：用例标识与名称。
+- `map_file`：地图文件名（相对 `--map-dir` 或 `spec/`，通常为 `map.json`）。
 - `preset`：游戏前置状态（`users`、`current_user`、`phase`、`game_status`、
   `players`、`properties`、`map_items`、`dice_sequence`）。
 - `actions`：按顺序执行的命令（`ROLL`、`STEP`、`SELL`、`BLOCK`、`BOMB`、`ROBOT`、
@@ -111,13 +118,17 @@ run_tests.exe --program <被测程序> --cases testcases\land\TC-LAND-001.json -
 - `expected`：只写需要验证的字段，未写的字段不参与比较。
 - `expected_result`（可选）：缺省为 `PASS`；填 `ERROR` 表示这是一个负向用例，
   期望被测程序报错而不是输出状态。
-- `expected_errors`（可选）：配合 `expected_result=ERROR` 使用，列出期望的错误码
-  （如 `INVALID_PARAMS`）。运行器会校验程序确实报 `ERROR`，且这些错误码都出现。
+- `expected_error_code`（可选，单字符串）：配合 `expected_result=ERROR` 使用，
+  列出期望的单个错误码（如 `INVALID_PARAMS`）。
+- `expected_errors`（可选，数组，兼容旧格式）：同样配合 `ERROR` 使用，列出期望的
+  错误码对象数组。
 
-示例见 `testcases/`。
+示例见 `testcases/Group1_Testcases.json` 和 `testcases/Group3_Testcases.json`。
 
-> 说明：`expected_result` / `expected_errors` 是测试侧自定扩展（接口规范未规定）。
-> 运行器向后兼容，缺少这两个字段时默认按 `PASS` 处理。
+> 说明：`expected_result` / `expected_error_code` / `expected_errors` 是测试侧自定
+> 扩展（接口规范未规定）。运行器向后兼容，缺少这些字段时默认按 `PASS` 处理。
+> 运行器同时兼容旧的“目录格式”：`--cases` 指向目录时递归读取每个 `*.json`（每个
+> 文件一个独立用例），用于兼容其他组以目录形式提供的用例。
 
 ## 判定规则（部分匹配）
 
