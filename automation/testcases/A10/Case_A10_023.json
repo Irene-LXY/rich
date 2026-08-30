@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A10_023",
+  "case_name": "被路障拦截仍支付过路费",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "Q",
+      "A"
+    ],
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 5000,
+        "credit": 0,
+        "position": 17,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 5000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 18,
+        "owner": "A",
+        "level": 2
+      }
+    ],
+    "map_items": [
+      {
+        "position": 18,
+        "type": "BLOCK"
+      }
+    ],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 5
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "A",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 4700
+      },
+      {
+        "id": "A",
+        "fund": 5300
+      }
+    ],
+    "map_items_absent": [
+      18
+    ]
+  },
+  "expected_result": "PASS"
+}
