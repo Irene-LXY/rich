@@ -94,13 +94,9 @@ char game_map_base_symbol(const GameMap *map, int index) {
     if (cell->has_bomb) return '@';
     switch (cell->type) {
         case CELL_START:       return 'S';
-        case CELL_LAND: {
-            /* 建筑等级 0~3：空地/茅屋/洋房/摩天楼，地图分别显示 0/1/2/3。 */
-            int level = cell->building_level;
-            if (level < 0) level = 0;
-            if (level > 3) level = 3;
-            return (char)('0' + level);
-        }
+        case CELL_LAND:
+            return (cell->building_level >= 0 && cell->building_level <= 3)
+                ? (char)('0' + cell->building_level) : '0';
         case CELL_TOOL_SHOP:   return 'T';
         case CELL_GIFT_SHOP:   return 'G';
         case CELL_MAGIC_HOUSE: return 'M';

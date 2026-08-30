@@ -75,6 +75,13 @@ const char *runtime_current_player_name(const GameRuntime *runtime);
 /* 是否游戏已结束。 */
 int runtime_is_finished(const GameRuntime *runtime);
 
+/* 玩家拒绝购买/升级后，命令层仍可处理本回合末尾的 Help/Quit，
+ * 并拒绝卖房或使用道具。完成该过渡后，下一玩家正式获得输入权。 */
+int runtime_post_roll_transition_pending(const GameRuntime *runtime);
+int runtime_complete_post_roll_transition(GameRuntime *runtime,
+                                          char *message,
+                                          size_t message_size);
+
 /* 只读状态接口，供查询层和自动测试使用；player_index 从 0 开始。 */
 int runtime_player_position(const GameRuntime *runtime, size_t player_index);
 int runtime_player_money(const GameRuntime *runtime, size_t player_index);

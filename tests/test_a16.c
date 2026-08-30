@@ -105,10 +105,30 @@ static void test_magic_through_dispatcher(void)
     runtime_destroy(runtime);
 }
 
+static void test_default_magic_choices(void)
+{
+    Game game;
+    char message[2048];
+    game_init(&game);
+    (void)game_start(&game);
+    game.runtime = runtime_create(2, 1000, test_roles);
+    CHECK(game.runtime != NULL, "应创建默认魔法运行时");
+    (void)runtime_begin(game.runtime, message, sizeof(message));
+    CHECK(command_execute(&game, "Step 63", message, sizeof(message)) == COMMAND_OK,
+          "应进入魔法屋");
+    CHECK(strstr(message, "1 魔法一") != NULL &&
+          strstr(message, "2 魔法二") != NULL,
+          "魔法屋应提供默认编号1和2");
+    CHECK(command_execute(&game, "1", message, sizeof(message)) == COMMAND_OK,
+          "默认魔法1应可成功选择");
+    runtime_destroy(game.runtime);
+}
+
 int main(void)
 {
     test_extensible_magic_module();
     test_magic_through_dispatcher();
+    test_default_magic_choices();
     if (failures == 0) {
         printf("[PASS] A16: %d assertions passed.\n", tests_run);
         return 0;

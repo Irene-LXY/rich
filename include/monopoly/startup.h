@@ -20,7 +20,7 @@ StartupResult application_start(
     size_t message_size
 );
 
-/* 引导阶段的输入处理：玩家人数 -> 初始资金 -> 自动分配角色并创建运行时。
+/* 引导阶段的输入处理：初始资金 -> 一次性选择角色并创建运行时。
  * 返回 COMMAND_OK / COMMAND_INVALID。 */
 CommandResult startup_handle_input(
     Game *game,

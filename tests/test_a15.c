@@ -77,6 +77,23 @@ static void test_points_and_god_of_wealth(void)
     runtime_destroy(runtime);
 }
 
+static void test_help_preserves_gift_choice(void)
+{
+    Game game = make_running_game();
+    char message[4096];
+    CHECK(command_execute(&game, "Step 35", message, sizeof(message)) == COMMAND_OK,
+          "应到达礼品屋");
+    CHECK(command_execute(&game, "hElP", message, sizeof(message)) == COMMAND_OK,
+          "礼品屋内应允许大小写混合的Help");
+    CHECK(game.context == CONTEXT_GIFT_HOUSE &&
+          strstr(message, "可用命令") != NULL,
+          "Help后必须保留礼品选择上下文");
+    CHECK(command_execute(&game, "2", message, sizeof(message)) == COMMAND_OK &&
+          runtime_player_points(game.runtime, 0) == 200,
+          "Help后仍应能正常领取礼品");
+    runtime_destroy(game.runtime);
+}
+
 static void test_invalid_choice_and_overflow(void)
 {
     GiftShopState gift;
@@ -100,6 +117,7 @@ int main(void)
 {
     test_gift_money_through_dispatcher();
     test_points_and_god_of_wealth();
+    test_help_preserves_gift_choice();
     test_invalid_choice_and_overflow();
     if (failures == 0) {
         printf("[PASS] A15: %d assertions passed.\n", tests_run);

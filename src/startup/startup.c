@@ -13,53 +13,117 @@ static void write_message(char *message, size_t size, const char *text) {
     }
 }
 
-/* 忽略大小写比较（用于“取消/cancel”等控制词）。 */
-static int equals_ignore_case(const char *left, const char *right) {
-    while (*left != '\0' && *right != '\0') {
-        if (tolower((unsigned char)*left) != tolower((unsigned char)*right)) {
+/*
+ * 解析“整行必须恰好是一个纯数字整数”。
+ * 空串或含任何非数字字符（小数点、正负号 +/-、字母、指数、逗号、
+ * 中间空格等）均返回 0；成功返回 1 并写入 *value。
+ * 玩家人数、初始资金、角色编号统一只接受纯数字输入。
+ */
+static int parse_strict_int(const char *input, long *value) {
+    const char *cursor;
+
+    if (*input == '\0') {
+        return 0;
+    }
+
+    /* 纯数字校验：拒绝小数、文字、正负号或其他字符
+       （strtol 本身会容忍 '+'/'-' 号，必须先拦住） */
+    for (cursor = input; *cursor != '\0'; ++cursor) {
+        if (!isdigit((unsigned char)*cursor)) {
             return 0;
         }
-        left++;
-        right++;
     }
-    return *left == '\0' && *right == '\0';
+
+    /* 全数字串解析（strtol 溢出会得到 LONG_MAX，调用方的范围检查必然拦截） */
+    *value = strtol(input, 0, 10);
+    return 1;
 }
 
-/* 列出剩余可选角色，并提示下一位玩家输入编号。 */
-static void write_available_roles(char *message, size_t size,
-                                  const int *chosen, int chosen_count,
-                                  int choosing_player)
+/* PDF 规定角色可以一次输入，例如“12”。 */
+static int parse_combined_roles(const char *input, int *roles, int *count) {
+    size_t length;
+    size_t i;
+    int seen[CHARACTER_MAX_ID + 1] = {0};
+
+    if (input == 0 || roles == 0 || count == 0) {
+        return 0;
+    }
+    length = strlen(input);
+    if (length < 2U || length > 4U) {
+        return 0;
+    }
+    for (i = 0; i < length; ++i) {
+        int id;
+        if (!isdigit((unsigned char)input[i])) {
+            return 0;
+        }
+        id = input[i] - '0';
+        if (id < CHARACTER_MIN_ID || id > CHARACTER_MAX_ID || seen[id]) {
+            return 0;
+        }
+        seen[id] = 1;
+        roles[i] = id;
+    }
+    *count = (int)length;
+    return 1;
+}
+
+static CommandResult create_runtime_and_begin(Game *game,
+                                               char *message,
+                                               size_t message_size) {
+    game->runtime = runtime_create(game->setup_player_count,
+                                   game->setup_initial_money,
+                                   game->setup_chosen);
+    if (game->runtime == 0) {
+        write_message(message, message_size, "初始化游戏失败。\n");
+        return COMMAND_INVALID;
+    }
+    game->setup_step = SETUP_COMPLETE;
+    (void)runtime_begin(game->runtime, message, message_size);
+    return COMMAND_OK;
+}
+
+/* 按 PDF 一次显示全部角色，并接收一个保持顺序的编号串。 */
+static void write_combined_role_prompt(char *message, size_t size)
 {
     const Character *table = character_table();
     char buf[1024];
     size_t used = 0;
-    int i, j;
+    int i;
     int written;
 
-    written = snprintf(buf, sizeof(buf), "可选角色：");
+    written = snprintf(buf, sizeof(buf),
+                       "请选择 2~4 位不重复玩家，一次输入角色编号：\n");
     if (written > 0) {
         used = (size_t)written;
     }
     for (i = 0; i < CHARACTER_COUNT; ++i) {
-        int taken = 0;
-        for (j = 0; j < chosen_count; ++j) {
-            if (chosen[j] == (int)table[i].id) {
-                taken = 1;
-                break;
-            }
-        }
-        if (!taken && used < sizeof(buf)) {
+        if (used < sizeof(buf)) {
             written = snprintf(buf + used, sizeof(buf) - used,
-                               " %d.%s(%c)", (int)table[i].id,
-                               table[i].name, table[i].symbol);
+                               " %d.%s(%c,%s)", (int)table[i].id,
+                               table[i].name, table[i].symbol,
+                               table[i].color_name);
             if (written > 0) {
                 used += (size_t)written;
             }
         }
     }
     (void)snprintf(buf + used, sizeof(buf) - used,
-                   "\n请输入玩家 %d 的角色编号：\n", choosing_player);
+                   "\n编号顺序就是玩家顺序：12 表示玩家1=1、玩家2=2；"
+                   "324 表示玩家1=3、玩家2=2、玩家3=4。\n");
     write_message(message, size, buf);
+}
+
+static void write_money_result_and_role_prompt(int initial_money,
+                                                char *message,
+                                                size_t message_size)
+{
+    char role_prompt[1024];
+
+    write_combined_role_prompt(role_prompt, sizeof(role_prompt));
+    (void)snprintf(message, message_size,
+                   "每位玩家初始资金为 %d 元。\n%s",
+                   initial_money, role_prompt);
 }
 
 StartupResult application_start(
@@ -78,7 +142,8 @@ StartupResult application_start(
         return STARTUP_ALREADY_STARTED;
     }
     if (argument_count != 1 || arguments == 0 || arguments[0] == 0 || arguments[0][0] == '\0') {
-        write_message(message, message_size, "启动失败：本程序不接受启动参数，请直接运行 monopoly。\n");
+        write_message(message, message_size,
+                      "启动失败：本程序不接受启动参数，请直接运行 rich.exe。\n");
         return STARTUP_INVALID_ARGUMENT;
     }
 
@@ -91,7 +156,9 @@ StartupResult application_start(
     write_message(
         message,
         message_size,
-        "大富翁启动成功。\n开局引导顺序：玩家人数 -> 初始资金 -> 角色选择。\n请输入玩家人数（2-4）：\n"
+        "大富翁启动成功。\n"
+        "开局顺序：初始资金 -> 一次性选择角色。\n"
+        "请输入每位玩家初始资金（1000~50000，直接回车使用默认 10000）：\n"
     );
     return STARTUP_OK;
 }
@@ -109,85 +176,40 @@ CommandResult startup_handle_input(
 
     switch (game->setup_step) {
         case SETUP_PLAYER_COUNT: {
-            int count = (int)strtol(input, 0, 10);
-            if (count < 2 || count > 4) {
-                write_message(message, message_size,
-                              "玩家数量必须为 2-4，请重新输入：\n");
-                return COMMAND_INVALID;
-            }
-            game->setup_player_count = count;
+            /* 兼容旧状态值，但按 PDF 统一转入资金设置。 */
             game->setup_step = SETUP_INITIAL_MONEY;
-            write_message(message, message_size,
-                          "请输入每位玩家的初始资金：\n");
-            return COMMAND_OK;
+            return startup_handle_input(game, input, message, message_size);
         }
         case SETUP_INITIAL_MONEY: {
-            int money;
+            long parsed = 0;
+
             if (input[0] == '\0') {
-                /* 空输入：采用默认初始资金 10000。 */
-                money = 10000;
-            } else if (equals_ignore_case(input, "取消") ||
-                       equals_ignore_case(input, "cancel")) {
-                /* 取消设置：回到人数步骤，重新开始引导。 */
-                game->setup_player_count = 0;
-                game->setup_step = SETUP_PLAYER_COUNT;
+                parsed = 10000;
+            } else if (!parse_strict_int(input, &parsed)) {
                 write_message(message, message_size,
-                              "已取消资金设置，请重新输入玩家人数（2-4）：\n");
-                return COMMAND_OK;
-            } else {
-                money = (int)strtol(input, 0, 10);
-                if (money < 1000 || money > 50000) {
-                    write_message(message, message_size,
-                                  "初始资金必须在 1000~50000 之间，请重新输入：\n");
-                    return COMMAND_INVALID;
-                }
+                              "无效命令或资金输入。初始资金必须为整数 1000~50000，请重新输入：\n");
+                return COMMAND_INVALID;
             }
-            game->setup_initial_money = money;
+            if (parsed < 1000 || parsed > 50000) {
+                write_message(message, message_size,
+                              "初始资金必须在 1000~50000 之间，请重新输入：\n");
+                return COMMAND_INVALID;
+            }
+            game->setup_initial_money = (int)parsed;
             game->setup_step = SETUP_ROLE_SELECTION;
-            game->setup_choosing = 0;
-            {
-                char roles[1024];
-                write_available_roles(roles, sizeof(roles),
-                                      game->setup_chosen, 0, 1);
-                (void)snprintf(message, message_size,
-                               "初始资金确定为 %d 元。\n%s", money, roles);
-            }
+            write_money_result_and_role_prompt(game->setup_initial_money,
+                                               message, message_size);
             return COMMAND_OK;
         }
         case SETUP_ROLE_SELECTION: {
-            int id = (int)strtol(input, 0, 10);
-            int i;
-            if (id < CHARACTER_MIN_ID || id > CHARACTER_MAX_ID) {
-                write_message(message, message_size,
-                              "角色编号必须为 1-4，请重新选择。\n");
+            int count = 0;
+            if (!parse_combined_roles(input, game->setup_chosen, &count)) {
+                write_combined_role_prompt(message, message_size);
                 return COMMAND_INVALID;
             }
-            for (i = 0; i < game->setup_choosing; ++i) {
-                if (game->setup_chosen[i] == id) {
-                    write_message(message, message_size,
-                                  "该角色已被选择，请重新选择。\n");
-                    return COMMAND_INVALID;
-                }
-            }
-            game->setup_chosen[game->setup_choosing++] = id;
-            if (game->setup_choosing < game->setup_player_count) {
-                write_available_roles(message, message_size,
-                                      game->setup_chosen,
-                                      game->setup_choosing,
-                                      game->setup_choosing + 1);
-            } else {
-                game->runtime = runtime_create(game->setup_player_count,
-                                               game->setup_initial_money,
-                                               game->setup_chosen);
-                if (game->runtime == 0) {
-                    write_message(message, message_size,
-                                  "初始化游戏失败。\n");
-                    return COMMAND_INVALID;
-                }
-                game->setup_step = SETUP_COMPLETE;
-                (void)runtime_begin(game->runtime, message, message_size);
-            }
-            return COMMAND_OK;
+            game->setup_player_count = count;
+            game->setup_choosing = count;
+            return create_runtime_and_begin(game, message, message_size);
         }
         case SETUP_COMPLETE:
         default:

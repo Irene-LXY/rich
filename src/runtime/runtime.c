@@ -16,6 +16,7 @@
 #include "a4/a4_turn_manager.h"
 #include "map/map.h"
 #include "map/game_interfaces.h"
+#include "property/property_system.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -29,7 +30,6 @@ static const ConsoleColor ROLE_COLORS[CHARACTER_COUNT] = {
 
 #define NOTICE_CAPACITY 2048
 #define MAGIC_EFFECT_CAPACITY 16U
-#define MAX_BUILDING_LEVEL 3  /* 空地0 / 茅屋1 / 洋房2 / 摩天楼3 */
 
 struct GameRuntime {
     GameMap      map;
@@ -44,9 +44,10 @@ struct GameRuntime {
     A4TurnHooks   hooks;
     GiftShopState gift_shop;
     MagicHouseState magic_house;
+    PropertySystem property_system;
     RuntimeContext context;
-    int          pending_position;   /* 待购买/升级的房产位置 */
-    int          pending_price;      /* 待支付价格 */
+    int          pending_bankrupt_player_id;
+    int          post_roll_transition_pending;
     MagicEffect magic_effects[MAGIC_EFFECT_CAPACITY];
     size_t magic_effect_count;
     char         notice[NOTICE_CAPACITY];
@@ -80,9 +81,7 @@ static int tool_move_handler(PlayerToken *player, const MapCell *cell,
 {
     ToolMoveContext *move = (ToolMoveContext *)data;
     GameRuntime *rt;
-    (void)player;
-    (void)context;
-    if (move == NULL || cell == NULL) {
+    if (move == NULL || player == NULL || cell == NULL || context == NULL) {
         return 1;
     }
     rt = move->runtime;
@@ -91,8 +90,11 @@ static int tool_move_handler(PlayerToken *player, const MapCell *cell,
         if (mutable_cell != NULL) {
             mutable_cell->has_block = 0;
         }
+        /* 路障截停在路障所在格，随后仍按该格类型处理落地事件。 */
+        player->position = cell->index;
         move->event = 1;
-        notice_append(rt, "踩到路障，停在 %d 号位置，路障已消失。\n", cell->index);
+        notice_append(rt, "遇到路障，停在 %d 号位置，路障已消失。\n",
+                      player->position);
         return 0;
     }
     if (cell->has_bomb) {
@@ -110,22 +112,78 @@ static int tool_move_handler(PlayerToken *player, const MapCell *cell,
     return 1;
 }
 
-/* 宣布破产（A17）：土地归还系统，只剩一名玩家时由 A4 结束游戏。 */
-static void runtime_declare_bankruptcy(GameRuntime *rt, int idx)
+static A4MoveResult handle_property_landing(GameRuntime *rt,
+                                            int player_index,
+                                            const MapCell *cell)
 {
-    int i;
-    notice_append(rt, "玩家 %s 资金不足 0，宣告破产！\n", rt->players[idx].name);
-    for (i = 0; i < RICH_MAP_SIZE; ++i) {
-        MapCell *cell = game_map_cell_at_mut(&rt->map, i);
-        if (cell != NULL && cell->type == CELL_LAND &&
-            cell->owner_id == idx + 1) {
-            cell->owner_id = RICH_NO_OWNER;
-            cell->building_level = 0;
-            notice_append(rt, "位置 %d 的土地归还系统，恢复为空地。\n", i);
+    PropertyResult result;
+    PropertyCode code;
+    unsigned int exemptions = PROPERTY_TOLL_EXEMPT_NONE;
+    int owner_index = cell->owner_id - 1;
+
+    if (gift_shop_god_rounds(&rt->gift_shop, (size_t)player_index) > 0) {
+        exemptions |= PROPERTY_TOLL_EXEMPT_FORTUNE;
+    }
+    if (owner_index >= 0 && owner_index < rt->player_count) {
+        const A4PlayerState *owner = &rt->turn_manager.players[owner_index];
+        if (owner->skip_turns_remaining > 0U &&
+            (owner->skip_reason == A4_SKIP_HOSPITAL ||
+             owner->skip_reason == A4_SKIP_PRISON)) {
+            exemptions |= PROPERTY_TOLL_EXEMPT_OWNER_RESTRAINED;
         }
     }
-    (void)a4_turn_manager_mark_player_out(&rt->turn_manager,
-                                          (A4PlayerId)(idx + 1));
+
+    code = property_after_move(&rt->property_system, player_index,
+                               cell->index, exemptions, &result);
+    if (code == PROPERTY_PENDING) {
+        if (result.action == PROPERTY_ACTION_BUY) {
+            rt->context = RUNTIME_CONTEXT_BUY_CONFIRM;
+            notice_append(rt,
+                "到达无主空地 %d 号（价格 %d 元）。是否购买？(Y/N)\n",
+                result.position, result.cost);
+        } else {
+            rt->context = RUNTIME_CONTEXT_UPGRADE_CONFIRM;
+            notice_append(rt,
+                "到达自己的房产 %d 号（等级 %d）。是否升级？(Y/N)\n",
+                result.position, result.building_level);
+        }
+        return A4_MOVE_LANDING_PENDING;
+    }
+    if (code == PROPERTY_ERR_MAX_LEVEL) {
+        notice_append(rt, "房产 %d 号已达到最高等级，无法升级。\n",
+                      result.position);
+        return A4_MOVE_RESOLVED;
+    }
+    if (code != PROPERTY_OK) {
+        notice_append(rt, "房产处理失败：%s。\n", property_code_string(code));
+        return A4_MOVE_RESOLVED;
+    }
+    if (result.action == PROPERTY_ACTION_TOLL) {
+        if ((result.toll_exemptions & PROPERTY_TOLL_EXEMPT_FORTUNE) != 0U) {
+            notice_append(rt, "财神附身，可免过路费。\n");
+        }
+        if ((result.toll_exemptions &
+             PROPERTY_TOLL_EXEMPT_OWNER_RESTRAINED) != 0U) {
+            notice_append(rt, "地产主人在医院或监狱中，可免过路费。\n");
+        }
+        if (result.toll_exemptions != PROPERTY_TOLL_EXEMPT_NONE) {
+            notice_append(rt, "到达玩家 %d 的房产 %d 号，免付过路费。\n",
+                          result.owner_index + 1, result.position);
+        } else {
+            notice_append(rt,
+                "到达玩家 %d 的房产 %d 号，应付过路费 %d 元，实际支付 %d 元。\n",
+                result.owner_index + 1, result.position,
+                result.toll, result.amount_paid);
+        }
+        if (result.player_bankrupt) {
+            rt->pending_bankrupt_player_id = player_index + 1;
+            notice_append(rt,
+                "玩家 %s 资金不足 0，宣告破产；%d 处房产已归还系统。\n",
+                rt->players[player_index].name,
+                result.released_property_count);
+        }
+    }
+    return A4_MOVE_RESOLVED;
 }
 
 /* ---- A4 hooks 实现 ---- */
@@ -178,68 +236,13 @@ static A4MoveResult roll_and_move_impl(
             notice_append(rt, "到达起点。\n");
             break;
         case CELL_LAND:
-            if (cell->owner_id == RICH_NO_OWNER) {
-                rt->context = RUNTIME_CONTEXT_BUY_CONFIRM;
-                rt->pending_position = token->position;
-                rt->pending_price = cell->land_price;
-                notice_append(rt,
-                    "到达无主空地 %d 号（价格 %d 元）。是否购买？(Y/N)\n",
-                    cell->index, cell->land_price);
+            if (handle_property_landing(rt, idx, cell) ==
+                A4_MOVE_LANDING_PENDING) {
                 return A4_MOVE_LANDING_PENDING;
-            } else if (cell->owner_id == player_id) {
-                if (cell->building_level >= MAX_BUILDING_LEVEL) {
-                    notice_append(rt,
-                        "到达自己的房产 %d 号，已是最高等级（摩天楼），无法继续升级。\n",
-                        cell->index);
-                    break;
-                }
-                rt->context = RUNTIME_CONTEXT_UPGRADE_CONFIRM;
-                rt->pending_position = token->position;
-                rt->pending_price = cell->land_price;
-                notice_append(rt,
-                    "到达自己的房产 %d 号（等级 %d）。是否升级？(Y/N)\n",
-                    cell->index, cell->building_level);
-                return A4_MOVE_LANDING_PENDING;
-            } else {
-                int property_value = cell->land_price * (cell->building_level + 1);
-                int toll = property_value / 2;
-                int owner_idx = cell->owner_id - 1;
-                int exempt = 0;
-                if (gift_shop_god_rounds(&rt->gift_shop, (size_t)idx) > 0) {
-                    exempt = 1;
-                    notice_append(rt, "财神附身，可免过路费。\n");
-                }
-                if (owner_idx >= 0 && owner_idx < rt->player_count) {
-                    const A4PlayerState *op = &rt->turn_manager.players[owner_idx];
-                    if (op->skip_turns_remaining > 0U &&
-                        (op->skip_reason == A4_SKIP_HOSPITAL ||
-                         op->skip_reason == A4_SKIP_PRISON)) {
-                        exempt = 1;
-                        notice_append(rt, "地产主人在医院或监狱中，可免过路费。\n");
-                    }
-                }
-                if (exempt) {
-                    notice_append(rt, "到达玩家 %d 的房产 %d 号，免付过路费。\n",
-                                  cell->owner_id, cell->index);
-                } else {
-                    rt->money[idx] -= toll;
-                    if (owner_idx >= 0 && owner_idx < rt->player_count) {
-                        rt->money[owner_idx] += toll;
-                    }
-                    notice_append(rt,
-                        "到达玩家 %d 的房产 %d 号，支付过路费 %d 元。\n",
-                        cell->owner_id, cell->index, toll);
-                    if (rt->money[idx] < 0) {
-                        runtime_declare_bankruptcy(rt, idx);
-                    }
-                }
             }
             break;
         case CELL_HOSPITAL:
-            notice_append(rt, "进入医院，住院 3 天（轮空 3 次）。\n");
-            (void)a4_turn_manager_set_skip(
-                &rt->turn_manager, (A4PlayerId)player_id,
-                A4_SKIP_HOSPITAL, 3U, "住院");
+            notice_append(rt, "到达医院探访，无特殊事件。\n");
             break;
         case CELL_PRISON:
             notice_append(rt, "进入监狱，扣留 2 天（轮空 2 次）。\n");
@@ -253,10 +256,10 @@ static A4MoveResult roll_and_move_impl(
                           cell->mine_points, rt->gift_shop.points[idx]);
             break;
         case CELL_TOOL_SHOP:
-            if (rt->gift_shop.points[idx] < 30 ||
-                rt->tools[idx][1] + rt->tools[idx][2] +
-                rt->tools[idx][3] >= 10U) {
-                notice_append(rt, "到达道具屋，但点数不足或背包已满，自动退出。\n");
+            if (rt->gift_shop.points[idx] < 30) {
+                notice_append(rt,
+                    "到达道具屋。欢迎光临！当前点数 %d，低于最便宜道具的 30 点，自动退出。\n",
+                    rt->gift_shop.points[idx]);
                 break;
             }
             rt->context = RUNTIME_CONTEXT_TOOL_SHOP;
@@ -264,7 +267,13 @@ static A4MoveResult roll_and_move_impl(
                 "到达道具屋。欢迎光临，请输入 1/2/3 选择道具：\n"
                 "  1 路障（50 点）  2 机器娃娃（30 点）  3 炸弹（50 点）\n"
                 "  F 退出道具屋\n"
-                "当前点数 %d。\n", rt->gift_shop.points[idx]);
+                "当前点数 %d，背包 %u/10。\n",
+                rt->gift_shop.points[idx],
+                rt->tools[idx][1] + rt->tools[idx][2] + rt->tools[idx][3]);
+            if (rt->tools[idx][1] + rt->tools[idx][2] +
+                rt->tools[idx][3] >= 10U) {
+                notice_append(rt, "道具数量已达上限，请输入 F 离开。\n");
+            }
             return A4_MOVE_LANDING_PENDING;
         case CELL_GIFT_SHOP:
             if (gift_shop_begin(&rt->gift_shop, (size_t)idx) != GIFT_OK) {
@@ -343,10 +352,12 @@ static void on_player_skipped(
 )
 {
     GameRuntime *rt = (GameRuntime *)context;
+    const char *display_reason;
     (void)remaining_after_skip;
-    (void)note;
+    display_reason = note != NULL && note[0] != '\0'
+        ? note : a4_skip_reason_string(reason);
     notice_append(rt, "玩家 %s 因%s跳过本回合。\n",
-                  snapshot->current_role_name, a4_skip_reason_string(reason));
+                  snapshot->current_role_name, display_reason);
 }
 
 static void on_game_finished(
@@ -361,6 +372,19 @@ static void on_game_finished(
     if (winner_id != 0U) {
         notice_append(rt, "获胜玩家：%d 号。\n", (int)winner_id);
     }
+}
+
+/* 说明书没有规定魔法的具体效果；提供两个可选择的默认占位效果。 */
+static int default_magic_handler(size_t caster_index,
+                                 int effect_id,
+                                 const MagicTarget *target,
+                                 void *context)
+{
+    (void)caster_index;
+    (void)effect_id;
+    (void)target;
+    (void)context;
+    return 0;
 }
 
 /* ---- 生命周期 ---- */
@@ -390,6 +414,18 @@ GameRuntime *runtime_create(int player_count, int initial_money,
     rt->context = RUNTIME_CONTEXT_TURN_START;
     gift_shop_init(&rt->gift_shop, (size_t)player_count);
     magic_house_init(&rt->magic_house, (size_t)player_count);
+    rt->magic_effects[0].id = 1;
+    rt->magic_effects[0].name = "魔法一";
+    rt->magic_effects[0].handler = default_magic_handler;
+    rt->magic_effects[1].id = 2;
+    rt->magic_effects[1].name = "魔法二";
+    rt->magic_effects[1].handler = default_magic_handler;
+    rt->magic_effect_count = 2U;
+    if (property_system_init(&rt->property_system, &rt->map, rt->money,
+                             (size_t)player_count) != PROPERTY_OK) {
+        free(rt);
+        return NULL;
+    }
 
     if (chosen_roles == NULL) {
         free(rt);
@@ -462,6 +498,15 @@ static int runtime_move(GameRuntime *rt,
     snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
     status = a4_turn_manager_roll(&rt->turn_manager,
                                   snapshot.current_player_id, forced_steps);
+    if (status == A4_TURN_OK && rt->pending_bankrupt_player_id > 0) {
+        int bankrupt_id = rt->pending_bankrupt_player_id;
+        rt->pending_bankrupt_player_id = 0;
+        rt->players[bankrupt_id - 1].active = 0;
+        (void)memset(rt->tools[bankrupt_id - 1], 0,
+                     sizeof(rt->tools[bankrupt_id - 1]));
+        status = a4_turn_manager_mark_player_out(
+            &rt->turn_manager, (A4PlayerId)bankrupt_id);
+    }
     (void)snprintf(message, message_size, "%s", rt->notice);
     return status == A4_TURN_OK ? 0 : 1;
 }
@@ -534,39 +579,44 @@ int runtime_answer(GameRuntime *rt,
             (void)snprintf(message, message_size, "%s", rt->notice);
             return -1;
         }
-    } else if (rt->context == RUNTIME_CONTEXT_BUY_CONFIRM) {
-        int yes = answer[0] == 'Y' || answer[0] == 'y';
-        MapCell *cell = game_map_cell_at_mut(&rt->map, rt->pending_position);
-        if (yes && cell != NULL) {
-            if (rt->money[player_index] >= rt->pending_price) {
-                rt->money[player_index] -= rt->pending_price;
-                cell->owner_id = (int)snapshot.current_player_id;
-                cell->building_level = 0;
-                notice_append(rt, "购买成功，成为房产 %d 号的主人。\n",
-                              rt->pending_position);
-            } else {
-                notice_append(rt, "资金不足，无法购买。\n");
-            }
-        } else {
-            notice_append(rt, "放弃购买。\n");
+    } else if (rt->context == RUNTIME_CONTEXT_BUY_CONFIRM ||
+               rt->context == RUNTIME_CONTEXT_UPGRADE_CONFIRM) {
+        PropertyResult property_result;
+        PropertyCode property_code = property_resolve_answer(
+            &rt->property_system, (int)player_index, answer,
+            &property_result);
+        if (property_code == PROPERTY_ERR_INVALID_DECISION) {
+            notice_append(rt, "%s。\n", property_code_string(property_code));
+            (void)snprintf(message, message_size, "%s", rt->notice);
+            return 1;
         }
-    } else if (rt->context == RUNTIME_CONTEXT_UPGRADE_CONFIRM) {
-        int yes = answer[0] == 'Y' || answer[0] == 'y';
-        MapCell *cell = game_map_cell_at_mut(&rt->map, rt->pending_position);
-        if (yes && cell != NULL) {
-            if (cell->building_level >= MAX_BUILDING_LEVEL) {
-                notice_append(rt, "房产 %d 号已是最高等级，无法升级。\n",
-                              rt->pending_position);
-            } else if (rt->money[player_index] >= rt->pending_price) {
-                rt->money[player_index] -= rt->pending_price;
-                ++cell->building_level;
+        if (property_code == PROPERTY_OK) {
+            if (property_result.action == PROPERTY_ACTION_BUY) {
+                if (property_result.accepted) {
+                    notice_append(rt, "购买成功，成为房产 %d 号的主人。\n",
+                                  property_result.position);
+                } else {
+                    notice_append(rt, "放弃购买。\n");
+                }
+            } else if (property_result.accepted) {
                 notice_append(rt, "升级成功，房产 %d 号升至等级 %d。\n",
-                              rt->pending_position, cell->building_level);
+                              property_result.position,
+                              property_result.building_level);
             } else {
-                notice_append(rt, "资金不足，无法升级。\n");
+                notice_append(rt, "放弃升级。\n");
             }
+            if (!property_result.accepted &&
+                (property_result.action == PROPERTY_ACTION_BUY ||
+                 property_result.action == PROPERTY_ACTION_UPGRADE)) {
+                rt->post_roll_transition_pending = 1;
+            }
+        } else if (property_code == PROPERTY_ERR_INSUFFICIENT_FUNDS) {
+            notice_append(rt, "资金不足，无法%s。\n",
+                property_result.action == PROPERTY_ACTION_BUY
+                    ? "购买" : "升级");
         } else {
-            notice_append(rt, "放弃升级。\n");
+            notice_append(rt, "房产操作失败：%s。\n",
+                          property_code_string(property_code));
         }
     } else if (rt->context == RUNTIME_CONTEXT_TOOL_SHOP) {
         int choice = answer[0] - '0';
@@ -576,21 +626,22 @@ int runtime_answer(GameRuntime *rt,
         } else if (answer[0] >= '1' && answer[0] <= '3' && answer[1] == '\0') {
             price = (answer[0] == '2') ? 30 : 50;
             if (rt->gift_shop.points[player_index] < price) {
-                notice_append(rt, "点数不足：需要 %d 点，当前 %d 点。\n",
+                notice_append(rt,
+                              "点数不足：需要 %d 点，当前 %d 点。已退出道具屋。\n",
                               price, rt->gift_shop.points[player_index]);
+                result = 1;
+            } else if (rt->tools[player_index][1] +
+                       rt->tools[player_index][2] +
+                       rt->tools[player_index][3] >= 10U) {
+                notice_append(rt, "道具数量已达上限 10，请输入 F 离开。\n");
                 (void)snprintf(message, message_size, "%s", rt->notice);
                 return 1;
+            } else {
+                rt->gift_shop.points[player_index] -= price;
+                rt->tools[player_index][choice]++;
+                notice_append(rt, "购买成功，剩余点数 %d。\n",
+                              rt->gift_shop.points[player_index]);
             }
-            if (rt->tools[player_index][1] + rt->tools[player_index][2] +
-                rt->tools[player_index][3] >= 10U) {
-                notice_append(rt, "道具数量已达上限 10。\n");
-                (void)snprintf(message, message_size, "%s", rt->notice);
-                return 1;
-            }
-            rt->gift_shop.points[player_index] -= price;
-            rt->tools[player_index][choice]++;
-            notice_append(rt, "购买成功，剩余点数 %d。\n",
-                          rt->gift_shop.points[player_index]);
         } else {
             notice_append(rt, "输入无效，请输入 1/2/3 或 F。\n");
             (void)snprintf(message, message_size, "%s", rt->notice);
@@ -603,6 +654,10 @@ int runtime_answer(GameRuntime *rt,
 
     gift_shop_finish_turn(&rt->gift_shop, player_index);
     rt->context = RUNTIME_CONTEXT_TURN_START;
+    if (rt->post_roll_transition_pending) {
+        (void)snprintf(message, message_size, "%s", rt->notice);
+        return result;
+    }
     status = a4_turn_manager_complete_landing(
         &rt->turn_manager, snapshot.current_player_id, false);
     if (status != A4_TURN_OK) {
@@ -690,10 +745,11 @@ int runtime_query(GameRuntime *rt, char *message, size_t message_size)
 int runtime_sell(GameRuntime *rt, int position, char *message, size_t message_size)
 {
     A4TurnSnapshot snapshot;
-    MapCell *cell;
+    PropertySellPermission permission;
+    PropertyResult result;
+    PropertyCode code;
     int player_id;
     int idx;
-    int sale_price;
     if (rt == NULL || message == NULL || message_size == 0) {
         return 1;
     }
@@ -701,22 +757,24 @@ int runtime_sell(GameRuntime *rt, int position, char *message, size_t message_si
     snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
     player_id = (int)snapshot.current_player_id;
     idx = player_id - 1;
-    if (position < 0 || position >= RICH_MAP_SIZE) {
-        notice_append(rt, "位置无效，请输入 0~69 的房产位置。\n");
+    if (idx < 0 || idx >= rt->player_count) {
+        (void)snprintf(message, message_size, "当前没有可操作玩家。\n");
+        return 1;
+    }
+    permission.is_current_turn = 1;
+    permission.is_pre_roll = snapshot.phase == A4_TURN_PHASE_PRE_ROLL &&
+                             !snapshot.has_rolled;
+    permission.is_restrained =
+        rt->turn_manager.players[idx].skip_turns_remaining > 0U;
+    code = property_sell_checked(&rt->property_system, idx, position,
+                                 permission, &result);
+    if (code != PROPERTY_OK) {
+        notice_append(rt, "%s。\n", property_code_string(code));
         (void)snprintf(message, message_size, "%s", rt->notice);
         return 1;
     }
-    cell = game_map_cell_at_mut(&rt->map, position);
-    if (cell == NULL || cell->type != CELL_LAND || cell->owner_id != player_id) {
-        notice_append(rt, "位置 %d 不是你的房产，无法出售。\n", position);
-        (void)snprintf(message, message_size, "%s", rt->notice);
-        return 1;
-    }
-    sale_price = cell->land_price * (cell->building_level + 1) * 2;
-    rt->money[idx] += sale_price;
-    cell->owner_id = RICH_NO_OWNER;
-    cell->building_level = 0;
-    notice_append(rt, "出售房产 %d 号，获得 %d 元。\n", position, sale_price);
+    notice_append(rt, "出售房产 %d 号，获得 %d 元。\n",
+                  position, result.sale_price);
     (void)snprintf(message, message_size, "%s", rt->notice);
     return 0;
 }
@@ -807,10 +865,25 @@ int runtime_buy_tool(GameRuntime *rt, int tool, char *message, size_t message_si
 
 int runtime_render(GameRuntime *rt, char *message, size_t message_size)
 {
+    A4TurnSnapshot snapshot;
+    PlayerToken ordered[A4_MAX_PLAYERS];
+    int current_index;
+    int output_index = 0;
+    int i;
     if (rt == NULL || message == NULL || message_size == 0) {
         return 1;
     }
-    return render_map(&rt->map, rt->players, (size_t)rt->player_count,
+    snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
+    current_index = (int)snapshot.current_player_id - 1;
+    if (current_index >= 0 && current_index < rt->player_count) {
+        ordered[output_index++] = rt->players[current_index];
+    }
+    for (i = 0; i < rt->player_count; ++i) {
+        if (i != current_index) {
+            ordered[output_index++] = rt->players[i];
+        }
+    }
+    return render_map(&rt->map, ordered, (size_t)output_index,
                       1, 1, message, message_size) ? 0 : 1;
 }
 
@@ -822,16 +895,16 @@ int runtime_help(GameRuntime *rt, char *message, size_t message_size)
     }
     (void)snprintf(message, message_size,
         "可用命令：\n"
-        "  Roll      掷骰子移动 1~6 步\n"
-        "  Step n    遥控骰子移动 n 步（测试用）\n"
-        "  Sell n    出售位置 n 的房产\n"
-        "  Block n   在前后 10 步内放置路障（n 为相对距离，负数表示后方）\n"
-        "  Bomb n    在前后 10 步内放置炸弹（n 为相对距离，负数表示后方）\n"
-        "  Robot     使用机器娃娃清扫前方 10 步内的障碍\n"
-        "  Query     查询当前玩家资产\n"
-        "  Map       显示地图\n"
-        "  Help      显示本帮助\n"
-        "  Quit      结束整局游戏\n");
+        "  Roll      掷骰子移动 1~6 步；示例：Roll\n"
+        "  Step n    遥控骰子移动 n 步（测试用）；示例：Step 6\n"
+        "  Sell n    出售绝对位置 n 的房产；示例：Sell 18\n"
+        "  Block n   在前后 10 步内放置路障；示例：Block -3\n"
+        "  Bomb n    在前后 10 步内放置炸弹；示例：Bomb 5\n"
+        "  Robot     使用机器娃娃清扫前方 10 步内的障碍；示例：Robot\n"
+        "  Query     查询当前玩家资产；示例：Query\n"
+        "  Map       显示地图；示例：Map\n"
+        "  Help      显示本帮助；示例：Help\n"
+        "  Quit      结束整局游戏；示例：Quit\n");
     return 0;
 }
 
@@ -856,6 +929,36 @@ int runtime_is_finished(const GameRuntime *rt)
         return 1;
     }
     return rt->turn_manager.phase == A4_TURN_PHASE_FINISHED;
+}
+
+int runtime_post_roll_transition_pending(const GameRuntime *rt)
+{
+    return rt != NULL ? rt->post_roll_transition_pending : 0;
+}
+
+int runtime_complete_post_roll_transition(GameRuntime *rt,
+                                          char *message,
+                                          size_t message_size)
+{
+    A4TurnSnapshot snapshot;
+    A4TurnStatus status;
+    if (rt == NULL || message == NULL || message_size == 0 ||
+        !rt->post_roll_transition_pending) {
+        return 1;
+    }
+    notice_clear(rt);
+    snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
+    status = a4_turn_manager_complete_landing(
+        &rt->turn_manager, snapshot.current_player_id, false);
+    if (status != A4_TURN_OK) {
+        notice_append(rt, "结束回合失败：%s。\n",
+                      a4_turn_status_string(status));
+        (void)snprintf(message, message_size, "%s", rt->notice);
+        return 1;
+    }
+    rt->post_roll_transition_pending = 0;
+    (void)snprintf(message, message_size, "%s", rt->notice);
+    return 0;
 }
 
 int runtime_player_position(const GameRuntime *rt, size_t player_index)
