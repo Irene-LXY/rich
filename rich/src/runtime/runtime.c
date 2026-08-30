@@ -12,6 +12,7 @@
 #include "monopoly/gift.h"
 #include "monopoly/character.h"
 #include "monopoly/query.h"
+#include "monopoly/automation.h"
 
 #include "a4/a4_turn_manager.h"
 #include "map/map.h"
@@ -48,6 +49,9 @@ struct GameRuntime {
     RuntimeContext context;
     int          pending_bankrupt_player_id;
     int          post_roll_transition_pending;
+    int          deferred_toll_owner_index;
+    int          deferred_toll_shortfall;
+    uint64_t     deferred_toll_round;
     MagicEffect magic_effects[MAGIC_EFFECT_CAPACITY];
     size_t magic_effect_count;
     char         notice[NOTICE_CAPACITY];
@@ -176,6 +180,29 @@ static A4MoveResult handle_property_landing(GameRuntime *rt,
                 result.toll, result.amount_paid);
         }
         if (result.player_bankrupt) {
+            A4TurnSnapshot bankruptcy_turn =
+                a4_turn_manager_snapshot(&rt->turn_manager);
+            int shortfall = result.toll - result.amount_paid;
+
+            if (rt->deferred_toll_shortfall > 0 &&
+                rt->deferred_toll_round != bankruptcy_turn.round_number) {
+                rt->deferred_toll_owner_index = -1;
+                rt->deferred_toll_shortfall = 0;
+            }
+            if (shortfall > 0) {
+                if (rt->deferred_toll_shortfall > 0 &&
+                    rt->deferred_toll_owner_index >= 0 &&
+                    rt->deferred_toll_owner_index < rt->player_count) {
+                    rt->money[rt->deferred_toll_owner_index] +=
+                        rt->deferred_toll_shortfall;
+                    notice_append(rt,
+                        "同一轮再次发生破产，补齐上一笔未付过路费 %d 元。\n",
+                        rt->deferred_toll_shortfall);
+                }
+                rt->deferred_toll_owner_index = result.owner_index;
+                rt->deferred_toll_shortfall = shortfall;
+                rt->deferred_toll_round = bankruptcy_turn.round_number;
+            }
             rt->pending_bankrupt_player_id = player_index + 1;
             notice_append(rt,
                 "玩家 %s 资金不足 0，宣告破产；%d 处房产已归还系统。\n",
@@ -262,6 +289,12 @@ static A4MoveResult roll_and_move_impl(
                     rt->gift_shop.points[idx]);
                 break;
             }
+            if (rt->tools[idx][1] + rt->tools[idx][2] +
+                rt->tools[idx][3] >= 10U) {
+                notice_append(rt,
+                    "到达道具屋，但道具数量已达上限 10，自动退出道具屋。\n");
+                break;
+            }
             rt->context = RUNTIME_CONTEXT_TOOL_SHOP;
             notice_append(rt,
                 "到达道具屋。欢迎光临，请输入 1/2/3 选择道具：\n"
@@ -270,10 +303,6 @@ static A4MoveResult roll_and_move_impl(
                 "当前点数 %d，背包 %u/10。\n",
                 rt->gift_shop.points[idx],
                 rt->tools[idx][1] + rt->tools[idx][2] + rt->tools[idx][3]);
-            if (rt->tools[idx][1] + rt->tools[idx][2] +
-                rt->tools[idx][3] >= 10U) {
-                notice_append(rt, "道具数量已达上限，请输入 F 离开。\n");
-            }
             return A4_MOVE_LANDING_PENDING;
         case CELL_GIFT_SHOP:
             if (gift_shop_begin(&rt->gift_shop, (size_t)idx) != GIFT_OK) {
@@ -412,6 +441,7 @@ GameRuntime *runtime_create(int player_count, int initial_money,
     rt->player_count = player_count;
     rt->initial_money = initial_money;
     rt->context = RUNTIME_CONTEXT_TURN_START;
+    rt->deferred_toll_owner_index = -1;
     gift_shop_init(&rt->gift_shop, (size_t)player_count);
     magic_house_init(&rt->magic_house, (size_t)player_count);
     rt->magic_effects[0].id = 1;
@@ -627,9 +657,10 @@ int runtime_answer(GameRuntime *rt,
             price = (answer[0] == '2') ? 30 : 50;
             if (rt->gift_shop.points[player_index] < price) {
                 notice_append(rt,
-                              "点数不足：需要 %d 点，当前 %d 点。已退出道具屋。\n",
+                              "点数不足：需要 %d 点，当前 %d 点。请重新选择或输入 F 离开。\n",
                               price, rt->gift_shop.points[player_index]);
-                result = 1;
+                (void)snprintf(message, message_size, "%s", rt->notice);
+                return 1;
             } else if (rt->tools[player_index][1] +
                        rt->tools[player_index][2] +
                        rt->tools[player_index][3] >= 10U) {
@@ -983,4 +1014,217 @@ int runtime_player_god_rounds(const GameRuntime *rt, size_t player_index)
 {
     return rt != NULL && player_index < (size_t)rt->player_count
         ? gift_shop_god_rounds(&rt->gift_shop, player_index) : -1;
+}
+
+/* ---- 自动化测试适配：装载预设 / 快照 / 强制结束（新增，不改既有逻辑） ---- */
+
+static int automation_role_id_for_symbol(char symbol)
+{
+    const Character *table = character_table();
+    int i;
+
+    for (i = 0; i < CHARACTER_COUNT; ++i) {
+        if (table[i].symbol == symbol) {
+            return (int)table[i].id;
+        }
+    }
+    return 0;
+}
+
+GameRuntime *runtime_load_preset(const AutomationPreset *preset)
+{
+    int roles[AUTOMATION_MAX_PLAYERS];
+    GameRuntime *rt;
+    int i;
+
+    if (preset == NULL || preset->player_count < (int)A4_MIN_PLAYERS ||
+        preset->player_count > (int)A4_MAX_PLAYERS) {
+        return NULL;
+    }
+
+    for (i = 0; i < preset->player_count; ++i) {
+        roles[i] = automation_role_id_for_symbol(preset->players[i].symbol);
+        if (roles[i] <= 0) {
+            return NULL;
+        }
+    }
+
+    rt = runtime_create(preset->player_count, 0, roles);
+    if (rt == NULL) {
+        return NULL;
+    }
+
+    for (i = 0; i < preset->player_count; ++i) {
+        const AutomationPlayer *p = &preset->players[i];
+
+        rt->players[i].position = p->position;
+        rt->money[i] = p->fund;
+        rt->gift_shop.points[i] = p->credit;
+        rt->gift_shop.god_of_wealth_rounds[i] = p->god_of_wealth_rounds;
+        rt->tools[i][1] = (unsigned int)p->block;
+        rt->tools[i][2] = (unsigned int)p->robot;
+        rt->tools[i][3] = (unsigned int)p->bomb;
+
+        if (p->status == AUTOMATION_STATUS_HOSPITAL) {
+            uint16_t rounds =
+                (uint16_t)(p->remaining_rounds > 0 ? p->remaining_rounds : 3);
+            (void)a4_turn_manager_set_skip(&rt->turn_manager,
+                (A4PlayerId)(i + 1), A4_SKIP_HOSPITAL, rounds, "住院");
+        } else if (p->status == AUTOMATION_STATUS_JAIL) {
+            uint16_t rounds =
+                (uint16_t)(p->remaining_rounds > 0 ? p->remaining_rounds : 2);
+            (void)a4_turn_manager_set_skip(&rt->turn_manager,
+                (A4PlayerId)(i + 1), A4_SKIP_PRISON, rounds, "入狱");
+        } else if (p->status == AUTOMATION_STATUS_BANKRUPT) {
+            (void)a4_turn_manager_mark_player_out(&rt->turn_manager,
+                                                  (A4PlayerId)(i + 1));
+        }
+    }
+
+    for (i = 0; i < preset->property_count; ++i) {
+        const AutomationProperty *pp = &preset->properties[i];
+        MapCell *cell = game_map_cell_at_mut(&rt->map, pp->position);
+        if (cell == NULL || cell->type != CELL_LAND) {
+            continue;
+        }
+        cell->owner_id = pp->owner_index + 1;
+        cell->building_level = pp->level;
+    }
+
+    for (i = 0; i < preset->map_item_count; ++i) {
+        const AutomationMapItem *mi = &preset->map_items[i];
+        MapCell *cell = game_map_cell_at_mut(&rt->map, mi->position);
+        if (cell == NULL) {
+            continue;
+        }
+        if (mi->type == AUTOMATION_ITEM_BLOCK) {
+            cell->has_block = 1;
+        } else if (mi->type == AUTOMATION_ITEM_BOMB) {
+            cell->has_bomb = 1;
+        }
+    }
+
+    (void)a4_turn_manager_begin(&rt->turn_manager);
+    if (preset->current_user_index >= 0 &&
+        preset->current_user_index < preset->player_count) {
+        rt->turn_manager.current_player_index =
+            (size_t)preset->current_user_index;
+    }
+    rt->context = RUNTIME_CONTEXT_TURN_START;
+
+    return rt;
+}
+
+static const char *automation_context_prompt(RuntimeContext context)
+{
+    switch (context) {
+        case RUNTIME_CONTEXT_BUY_CONFIRM: return "BUY";
+        case RUNTIME_CONTEXT_UPGRADE_CONFIRM: return "UPGRADE";
+        case RUNTIME_CONTEXT_TOOL_SHOP: return "TOOL_SHOP";
+        case RUNTIME_CONTEXT_GIFT_HOUSE: return "GIFT_SHOP";
+        case RUNTIME_CONTEXT_MAGIC_HOUSE: return "MAGIC_HOUSE";
+        default: return NULL;
+    }
+}
+
+void runtime_snapshot(const GameRuntime *rt, AutomationSnapshot *snapshot)
+{
+    A4TurnSnapshot turn;
+    int i;
+    int active_count = 0;
+    int last_active = -1;
+
+    if (rt == NULL || snapshot == NULL) {
+        return;
+    }
+    memset(snapshot, 0, sizeof(*snapshot));
+    snapshot->current_user_index = -1;
+    snapshot->winner_index = -1;
+    snapshot->player_count = rt->player_count;
+
+    for (i = 0; i < rt->player_count; ++i) {
+        const A4PlayerState *ts = &rt->turn_manager.players[i];
+        AutomationPlayer *ap = &snapshot->players[i];
+
+        ap->symbol = rt->players[i].symbol;
+        ap->fund = rt->money[i];
+        ap->credit = rt->gift_shop.points[i];
+        ap->position = rt->players[i].position;
+        ap->block = (int)rt->tools[i][1];
+        ap->robot = (int)rt->tools[i][2];
+        ap->bomb = (int)rt->tools[i][3];
+        ap->god_of_wealth_rounds = rt->gift_shop.god_of_wealth_rounds[i];
+
+        if (!ts->participating) {
+            ap->status = AUTOMATION_STATUS_BANKRUPT;
+            ap->remaining_rounds = 0;
+        } else if (ts->skip_reason == A4_SKIP_HOSPITAL) {
+            ap->status = AUTOMATION_STATUS_HOSPITAL;
+            ap->remaining_rounds = (int)ts->skip_turns_remaining;
+        } else if (ts->skip_reason == A4_SKIP_PRISON) {
+            ap->status = AUTOMATION_STATUS_JAIL;
+            ap->remaining_rounds = (int)ts->skip_turns_remaining;
+        } else {
+            ap->status = AUTOMATION_STATUS_NORMAL;
+            ap->remaining_rounds = 0;
+        }
+
+        if (ts->participating) {
+            ++active_count;
+            last_active = i;
+        }
+    }
+
+    if (rt->turn_manager.phase == A4_TURN_PHASE_FINISHED) {
+        snapshot->phase = AUTOMATION_PHASE_ENDED;
+        snapshot->game_status = 1;
+    } else {
+        snapshot->game_status = 0;
+        snapshot->phase = (rt->context == RUNTIME_CONTEXT_TURN_START)
+            ? AUTOMATION_PHASE_COMMAND : AUTOMATION_PHASE_PROMPT;
+        if (snapshot->phase == AUTOMATION_PHASE_PROMPT) {
+            snapshot->pending_prompt = automation_context_prompt(rt->context);
+        }
+    }
+
+    turn = a4_turn_manager_snapshot(&rt->turn_manager);
+    if (turn.current_player_id != 0U) {
+        snapshot->current_user_index = (int)(turn.current_player_id - 1U);
+    }
+
+    for (i = 0; i < RICH_MAP_SIZE; ++i) {
+        const MapCell *cell = &rt->map.cells[i];
+        if (cell->type == CELL_LAND && cell->owner_id != RICH_NO_OWNER) {
+            AutomationProperty *p =
+                &snapshot->properties[snapshot->property_count];
+            p->position = i;
+            p->owner_index = cell->owner_id - 1;
+            p->level = cell->building_level;
+            ++snapshot->property_count;
+        }
+    }
+
+    for (i = 0; i < RICH_MAP_SIZE; ++i) {
+        const MapCell *cell = &rt->map.cells[i];
+        if (cell->has_block || cell->has_bomb) {
+            AutomationMapItem *m =
+                &snapshot->map_items[snapshot->map_item_count];
+            m->position = i;
+            m->type = cell->has_block ? AUTOMATION_ITEM_BLOCK
+                                      : AUTOMATION_ITEM_BOMB;
+            ++snapshot->map_item_count;
+        }
+    }
+
+    if (snapshot->game_status == 1 && active_count == 1) {
+        snapshot->winner_index = last_active;
+    }
+}
+
+int runtime_finish(GameRuntime *rt)
+{
+    if (rt == NULL) {
+        return 1;
+    }
+    return a4_turn_manager_finish(&rt->turn_manager, 0U) == A4_TURN_OK ? 0 : 1;
 }

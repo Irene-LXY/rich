@@ -99,6 +99,29 @@ static int append_char(char *buffer, size_t size, size_t *used, char value) {
     return 1;
 }
 
+static int append_colored_char(char *buffer, size_t size, size_t *used,
+                               char value, ConsoleColor color,
+                               int use_ansi_color) {
+    if (use_ansi_color && color != COLOR_DEFAULT) {
+        return append_text(buffer, size, used, ansi_code(color)) &&
+               append_char(buffer, size, used, value) &&
+               append_text(buffer, size, used, "\033[0m");
+    }
+    return append_char(buffer, size, used, value);
+}
+
+static const PlayerToken *find_player_by_id(const PlayerToken *players,
+                                            size_t player_count,
+                                            int player_id) {
+    size_t index;
+    for (index = 0; index < player_count; ++index) {
+        if (players[index].id == player_id) {
+            return &players[index];
+        }
+    }
+    return NULL;
+}
+
 int render_map(const GameMap *map,
                const PlayerToken *players,
                size_t player_count,
@@ -172,5 +195,49 @@ int render_map(const GameMap *map,
             buffer, buffer_size, &used,
             "\n格子编号：沿顺时针方向依次为 0～69。\n"
             "关键位置：S=0, H=14, T=28, G=35, P=49, M=63, 矿地=64～69\n")) return 0;
+    if (show_indices) {
+        char detail[16];
+        if (!append_text(buffer, buffer_size, &used,
+                         "逐格明细（编号:格子符号/所在玩家；房产颜色表示归属）：\n")) {
+            return 0;
+        }
+        for (i = 0; i < RICH_MAP_SIZE; ++i) {
+            const MapCell *cell = game_map_cell_at(map, (int)i);
+            const PlayerToken *occupant = first_occupant[i];
+            const PlayerToken *owner = cell != NULL &&
+                cell->owner_id != RICH_NO_OWNER
+                ? find_player_by_id(players, player_count, cell->owner_id)
+                : NULL;
+            char symbol = game_map_base_symbol(map, (int)i);
+            ConsoleColor symbol_color = owner != NULL
+                ? owner->color : COLOR_DEFAULT;
+            int written;
+            written = snprintf(detail, sizeof(detail), "[%02u:",
+                               (unsigned int)i);
+            if (written < 0 || (size_t)written >= sizeof(detail) ||
+                !append_text(buffer, buffer_size, &used, detail) ||
+                !append_colored_char(buffer, buffer_size, &used, symbol,
+                                     symbol_color, use_ansi_color)) {
+                return 0;
+            }
+            if (occupant != NULL &&
+                (!append_char(buffer, buffer_size, &used, '/') ||
+                 !append_colored_char(buffer, buffer_size, &used,
+                                      occupant->symbol, occupant->color,
+                                      use_ansi_color))) {
+                return 0;
+            }
+            if (!append_char(buffer, buffer_size, &used, ']') ||
+                ((i + 1U) % 7U == 0U
+                    ? !append_char(buffer, buffer_size, &used, '\n')
+                    : !append_char(buffer, buffer_size, &used, ' '))) {
+                return 0;
+            }
+        }
+        if (used > 0U && buffer[used - 1U] != '\n' &&
+            !append_char(buffer, buffer_size, &used, '\n')) {
+            return 0;
+        }
+    }
     return 1;
 }
