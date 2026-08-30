@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A15_011",
+  "case_name": "停留礼品屋进入礼品屋界面",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "Q",
+      "A"
+    ],
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 34,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "Q",
+    "phase": "PROMPT",
+    "pending_prompt": "GIFT_SHOP",
+    "players": [
+      {
+        "id": "Q",
+        "position": 35
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

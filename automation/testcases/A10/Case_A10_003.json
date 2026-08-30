@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A10_003",
+  "case_name": "收取地段一洋房过路费",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "S",
+      "J"
+    ],
+    "current_user": "S",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "S",
+        "fund": 5000,
+        "credit": 0,
+        "position": 9,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "J",
+        "fund": 5000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 10,
+        "owner": "J",
+        "level": 2
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "J",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "S",
+        "fund": 4700
+      },
+      {
+        "id": "J",
+        "fund": 5300
+      }
+    ],
+    "properties": [
+      {
+        "position": 10,
+        "owner": "J",
+        "level": 2
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

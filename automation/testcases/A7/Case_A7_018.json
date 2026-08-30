@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A7_018",
+  "case_name": "查询三处房产十炸弹",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "A",
+      "Q"
+    ],
+    "current_user": "A",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "A",
+        "fund": 7200,
+        "credit": 180,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 10,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 1
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 10,
+        "owner": "A",
+        "level": 1
+      },
+      {
+        "position": 12,
+        "owner": "A",
+        "level": 2
+      },
+      {
+        "position": 15,
+        "owner": "A",
+        "level": 3
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "QUERY",
+      "params": {}
+    }
+  ],
+  "expected": {
+    "current_user": "A",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "A",
+        "fund": 7200,
+        "credit": 180,
+        "god_of_wealth_rounds": 1,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 10,
+          "ROBOT": 0
+        }
+      }
+    ],
+    "properties": [
+      {
+        "position": 10,
+        "owner": "A",
+        "level": 1
+      },
+      {
+        "position": 12,
+        "owner": "A",
+        "level": 2
+      },
+      {
+        "position": 15,
+        "owner": "A",
+        "level": 3
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

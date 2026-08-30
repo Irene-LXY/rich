@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A7_017",
+  "case_name": "查询空地茅屋",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "Q",
+      "A"
+    ],
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 9100,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 1
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 8,
+        "owner": "Q",
+        "level": 0
+      },
+      {
+        "position": 15,
+        "owner": "Q",
+        "level": 1
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "QUERY",
+      "params": {}
+    }
+  ],
+  "expected": {
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 9100,
+        "credit": 0,
+        "god_of_wealth_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 1
+        }
+      }
+    ],
+    "properties": [
+      {
+        "position": 8,
+        "owner": "Q",
+        "level": 0
+      },
+      {
+        "position": 15,
+        "owner": "Q",
+        "level": 1
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

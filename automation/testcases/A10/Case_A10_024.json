@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A10_024",
+  "case_name": "经过他人房产不停留不收租",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "A",
+      "S"
+    ],
+    "current_user": "A",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "A",
+        "fund": 5000,
+        "credit": 0,
+        "position": 28,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "S",
+        "fund": 5000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 29,
+        "owner": "S",
+        "level": 0
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 2
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "A",
+    "phase": "PROMPT",
+    "players": [
+      {
+        "id": "A",
+        "fund": 5000,
+        "position": 30
+      },
+      {
+        "id": "S",
+        "fund": 5000
+      }
+    ],
+    "pending_prompt": "BUY"
+  },
+  "expected_result": "PASS"
+}
