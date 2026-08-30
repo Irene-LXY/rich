@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A10_016",
+  "case_name": "财神且房主住院双重免租",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "A",
+      "Q",
+      "S"
+    ],
+    "current_user": "A",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "A",
+        "fund": 3000,
+        "credit": 0,
+        "position": 2,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 1
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "S",
+        "fund": 5000,
+        "credit": 0,
+        "position": 0,
+        "status": "HOSPITAL",
+        "remaining_rounds": 2,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 3,
+        "owner": "S",
+        "level": 0
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "A",
+        "fund": 3000
+      },
+      {
+        "id": "S",
+        "fund": 5000
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

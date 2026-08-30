@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A7_002",
+  "case_name": "查询含空地路障财神",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "A",
+      "Q"
+    ],
+    "current_user": "A",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "A",
+        "fund": 9000,
+        "credit": 100,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 1,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 3
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 8,
+        "owner": "A",
+        "level": 0
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "QUERY",
+      "params": {}
+    }
+  ],
+  "expected": {
+    "current_user": "A",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "A",
+        "fund": 9000,
+        "credit": 100,
+        "god_of_wealth_rounds": 3,
+        "items": {
+          "BLOCK": 1,
+          "BOMB": 0,
+          "ROBOT": 0
+        }
+      }
+    ],
+    "properties": [
+      {
+        "position": 8,
+        "owner": "A",
+        "level": 0
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

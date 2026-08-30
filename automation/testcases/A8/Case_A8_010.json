@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A8_010",
+  "case_name": "Roll到达医院无特殊事件",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "Q",
+      "A"
+    ],
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 12,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": [
+      2
+    ]
+  },
+  "actions": [
+    {
+      "command": "ROLL",
+      "params": {}
+    }
+  ],
+  "expected": {
+    "current_user": "A",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "Q",
+        "position": 14,
+        "status": "NORMAL"
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}
