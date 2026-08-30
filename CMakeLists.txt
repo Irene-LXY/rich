@@ -43,6 +43,10 @@ target_link_libraries(monopoly PRIVATE monopoly_core)
 add_executable(rich src/main.c)
 target_link_libraries(rich PRIVATE monopoly_core)
 
+# 独立的 JSON 黑盒测试入口；不改变 rich.exe 的交互启动与业务行为。
+add_executable(monopoly_test src/test_runner_main.c)
+target_link_libraries(monopoly_test PRIVATE monopoly_core)
+
 enable_testing()
 add_executable(test_a15 tests/test_a15.c)
 target_link_libraries(test_a15 PRIVATE monopoly_core)

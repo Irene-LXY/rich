@@ -253,9 +253,9 @@ static void test_tool_shop_pdf_boundaries(void)
           "Case_A14_001", "钱夫人应带40点进入道具屋");
     CHECK(execute(&game, "3", message, sizeof(message)) == COMMAND_INVALID,
           "Case_A14_001", "40点不足购买炸弹");
-    CHECK(strstr(message, "已退出道具屋") != NULL &&
-          game.context == CONTEXT_TURN_START,
-          "Case_A14_001", "点数不足后应退出道具屋");
+    CHECK(strstr(message, "请重新选择或输入 F 离开") != NULL &&
+          game.context == CONTEXT_TOOL_SHOP,
+          "Case_A14_001", "点数不足后应留在道具屋");
     runtime_destroy(game.runtime);
 }
 

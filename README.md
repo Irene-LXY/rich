@@ -117,6 +117,7 @@ cd D:\test\rich\build-ninja
 - 每次购买或升级的费用等于该地块的空地价格。
 - 停在其他玩家的房产上，需要支付房产当前价值一半的过路费。
 - 财神附身期间可免交过路费；房主在医院或监狱时也免收过路费。
+- 同一轮内连续发生破产时，后一笔破产结算会补齐上一笔未付足的过路费；当前一笔仍按玩家实际可支付金额入账。
 - `Sell n` 的售价为该房产累计投资总成本的两倍。
 - 玩家资金不足且无法继续支付时破产，其房产和道具会重置并归还系统。
 
@@ -165,6 +166,17 @@ ctest --test-dir build-ninja --output-on-failure
 - `test_a20`：道具及其运行时集成。
 
 最近一次完整测试结果为 8/8 组通过；其中房产规则测试为 71/71，房产集成测试为 20/20。
+
+### 跨组 JSON 黑盒测试
+
+`monopoly_test` 是独立的自动化测试入口，不改变 `rich` 的交互启动方式。它按固定契约接收：
+
+```text
+monopoly_test <test_case.json> <map.json>
+```
+
+并只向 stdout 输出 Actual 状态 JSON 或 ERROR 报告。可以直接执行 `build.bat` 生成
+`monopoly_test.exe`；随后由测试侧的 `run_tests` 将 `--program` 指向该文件。
 
 ## 项目结构
 
