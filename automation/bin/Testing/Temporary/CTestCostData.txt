@@ -1,9 +1,0 @@
-A15_gift_shop 7 0.0228323
-A16_magic_house 7 0.0227767
-A1_startup 7 0.0219966
-A20_quit 7 0.0221416
-A4_turn_manager 7 0.0226624
-A5_map 7 0.0223511
-A9_A10_A11_property 7 0.0284249
-A4_runtime_workbook_regressions 1 0.185053
----
