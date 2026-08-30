@@ -1,5 +1,8 @@
 #include "map/game_interfaces.h"
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -63,6 +66,13 @@ int main(void) {
     assert(strchr(rendered, 'Q') != NULL);
     assert(game_map_base_symbol(&map, 1) == '0');
 
+    map.cells[1].owner_id = 1;
+    map.cells[1].building_level = 1;
+    player.position = 2;
+    assert(render_map(&map, &player, 1, 0, 1, rendered, sizeof(rendered)));
+    assert(render_map(&map, &player, 1, 1, 1, rendered, sizeof(rendered)));
+
+    player.position = 1;
     result = move_player(&map, &player, 6, stop_after_three, &entered);
     assert(result.interrupted);
     assert(result.completed_steps == 3);

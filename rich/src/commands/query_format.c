@@ -43,6 +43,13 @@ const char *query_building_name(int level) {
     }
 }
 
+static int query_land_segment(int land_price) {
+    if (land_price == 200) return 1;
+    if (land_price == 500) return 2;
+    if (land_price == 300) return 3;
+    return 0;
+}
+
 int query_format_player(const QueryPlayerState *state,
                         char *message,
                         size_t message_size) {
@@ -72,8 +79,9 @@ int query_format_player(const QueryPlayerState *state,
     for (i = 0U; i < state->property_count; ++i) {
         const QueryProperty *property = &state->properties[i];
         if (append_text(message, message_size, &used,
-                        "  - 位置%d：%s（等级%d，地价%d元）\n",
+                        "  - 位置%d：地段%d，%s（等级%d，地价%d元）\n",
                         property->position,
+                        query_land_segment(property->land_price),
                         query_building_name(property->building_level),
                         property->building_level,
                         property->land_price)) {

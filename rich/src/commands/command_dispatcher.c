@@ -1,6 +1,7 @@
 #include "monopoly/command.h"
 #include "monopoly/runtime.h"
 #include "monopoly/startup.h"
+#include "property/property_system.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -14,6 +15,27 @@
 static void write_message(char *message, size_t size, const char *text) {
     if (message != 0 && size > 0) {
         (void)snprintf(message, size, "%s", text);
+    }
+}
+
+static void append_message(char *message, size_t size, const char *text) {
+    size_t used;
+    if (message == 0 || size == 0 || text == 0) {
+        return;
+    }
+    used = strlen(message);
+    if (used < size - 1) {
+        (void)snprintf(message + used, size - used, "%s", text);
+    }
+}
+
+static void complete_post_roll_and_append(Game *game,
+                                          char *message,
+                                          size_t message_size) {
+    char transition[512];
+    if (runtime_complete_post_roll_transition(
+            game->runtime, transition, sizeof(transition)) == 0) {
+        append_message(message, message_size, transition);
     }
 }
 
@@ -109,6 +131,13 @@ CommandResult command_execute(
 
     (void)memcpy(buffer, input, strlen(input) + 1);
     text = trim(buffer);
+    if (*text == '\0') {
+        if (game->runtime == 0) {
+            return startup_handle_input(game, text, message, message_size);
+        }
+        write_message(message, message_size, "命令不能为空。\n");
+        return COMMAND_INVALID;
+    }
 
     (void)memcpy(full_input, text, strlen(text) + 1);
 
@@ -123,7 +152,7 @@ CommandResult command_execute(
         arguments = trim(separator + 1);
     }
 
-    /* 引导阶段：运行时尚未创建，交给开局引导处理（含空输入，如资金默认值）。 */
+    /* 引导阶段：运行时尚未创建，交给开局引导处理。 */
     if (game->runtime == 0) {
         if (equals_ignore_case(text, "quit")) {
             return quit_command_execute(game, arguments, message, message_size);
@@ -131,13 +160,30 @@ CommandResult command_execute(
         return startup_handle_input(game, text, message, message_size);
     }
 
-    if (*text == '\0') {
-        write_message(message, message_size, "命令不能为空。\n");
-        return COMMAND_INVALID;
-    }
-
     if (equals_ignore_case(text, "quit")) {
         return quit_command_execute(game, arguments, message, message_size);
+    }
+
+    if (runtime_post_roll_transition_pending(game->runtime)) {
+        if (equals_ignore_case(text, "sell") ||
+            equals_ignore_case(text, "block") ||
+            equals_ignore_case(text, "bomb") ||
+            equals_ignore_case(text, "robot")) {
+            write_message(message, message_size,
+                "掷骰后只能处理当前格事件，本回合不能卖房或使用/放置道具。\n");
+            complete_post_roll_and_append(game, message, message_size);
+            return COMMAND_NOT_ALLOWED;
+        }
+        if (equals_ignore_case(text, "help") && arguments[0] == '\0') {
+            (void)runtime_help(game->runtime, message, message_size);
+            complete_post_roll_and_append(game, message, message_size);
+            return COMMAND_OK;
+        }
+        {
+            char transition[512];
+            (void)runtime_complete_post_roll_transition(
+                game->runtime, transition, sizeof(transition));
+        }
     }
 
     /* A15/A16 的选择属于当前落地事件，不作为普通命令解析。 */
@@ -146,6 +192,12 @@ CommandResult command_execute(
         game->context == CONTEXT_BUY_CONFIRM ||
         game->context == CONTEXT_UPGRADE_CONFIRM ||
         game->context == CONTEXT_TOOL_SHOP) {
+        /* 礼品屋中的 Help 只显示帮助，不结束或改变当前礼品选择。 */
+        if (game->context == CONTEXT_GIFT_HOUSE &&
+            equals_ignore_case(text, "help") && arguments[0] == '\0') {
+            (void)runtime_help(game->runtime, message, message_size);
+            return COMMAND_OK;
+        }
         int answer_result = runtime_answer(game->runtime, full_input,
                                            message, message_size);
         sync_runtime_context(game);
@@ -180,14 +232,19 @@ CommandResult command_execute(
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "query")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Query 命令不接受参数。\n");
+            return COMMAND_INVALID;
+        }
         (void)runtime_query(game->runtime, message, message_size);
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "sell")) {
         int position;
-        if (!parse_positive_int(arguments, &position)) {
-            write_message(message, message_size,
-                          "Sell 命令格式为 Sell n，n 为房产位置。\n");
+        PropertyCode code = property_parse_sell_command(full_input, &position);
+        if (code != PROPERTY_OK) {
+            (void)snprintf(message, message_size, "%s。\n",
+                           property_code_string(code));
             return COMMAND_INVALID;
         }
         if (runtime_sell(game->runtime, position, message, message_size) != 0) {
@@ -221,6 +278,10 @@ CommandResult command_execute(
         return COMMAND_OK;
     }
     if (equals_ignore_case(text, "map")) {
+        if (arguments[0] != '\0') {
+            write_message(message, message_size, "Map 命令不接受参数。\n");
+            return COMMAND_INVALID;
+        }
         (void)runtime_render(game->runtime, message, message_size);
         return COMMAND_OK;
     }

@@ -6,18 +6,18 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 
 set "RUNNER=%~dp0build\run_tests.exe"
+if not exist "%RUNNER%" if exist "%~dp0build\Release\run_tests.exe" set "RUNNER=%~dp0build\Release\run_tests.exe"
+if not exist "%RUNNER%" if exist "%~dp0build\Debug\run_tests.exe" set "RUNNER=%~dp0build\Debug\run_tests.exe"
 if not exist "%RUNNER%" (
     echo Building test environment...
-    where cmake >nul 2>nul
+    where powershell >nul 2>nul
     if errorlevel 1 (
-        echo [ERROR] cmake not found. Install CMake and a C11 compiler first.
+        echo [ERROR] PowerShell not found.
         echo.
         pause
         exit /b 1
     )
-    cmake -S . -B build
-    if errorlevel 1 goto :buildfail
-    cmake --build build
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\build.ps1" -NoPause
     if errorlevel 1 goto :buildfail
 )
 
@@ -26,6 +26,9 @@ set "TARGET="
 if exist "%~dp0program.txt" set /p TARGET=<"%~dp0program.txt"
 
 if not defined TARGET if exist "%~dp0bin\monopoly_test.exe" set "TARGET=%~dp0bin\monopoly_test.exe"
+if not defined TARGET if exist "%~dp0..\rich\build-local\monopoly_test.exe" set "TARGET=%~dp0..\rich\build-local\monopoly_test.exe"
+if not defined TARGET if exist "%~dp0..\rich\build-local\Release\monopoly_test.exe" set "TARGET=%~dp0..\rich\build-local\Release\monopoly_test.exe"
+if not defined TARGET if exist "%~dp0..\rich\build-local\Debug\monopoly_test.exe" set "TARGET=%~dp0..\rich\build-local\Debug\monopoly_test.exe"
 if not defined TARGET if exist "%~dp0..\rich\build\monopoly_test.exe" set "TARGET=%~dp0..\rich\build\monopoly_test.exe"
 if not defined TARGET if exist "%~dp0..\rich\build\Release\monopoly_test.exe" set "TARGET=%~dp0..\rich\build\Release\monopoly_test.exe"
 if not defined TARGET if exist "%~dp0..\rich\build\Debug\monopoly_test.exe" set "TARGET=%~dp0..\rich\build\Debug\monopoly_test.exe"

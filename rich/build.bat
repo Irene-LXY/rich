@@ -1,24 +1,17 @@
 @echo off
-rem Portable build: uses CMake (CMakeLists.txt) and lets it auto-detect the C compiler.
-rem Does not hardcode any specific compiler or compiler path.
+rem One-click build + test (Windows).
+rem Delegates to the universal PowerShell script, which auto-detects the
+rem toolchain and picks a working CMake generator (avoids NMake+cl.exe,
+rem which needs a vcvars environment and fails when double-clicked).
 setlocal
 cd /d "%~dp0"
 
-where cmake >nul 2>nul
+where powershell >nul 2>nul
 if errorlevel 1 (
-    echo [ERROR] cmake not found. Install CMake and a C11 compiler, then add them to PATH.
+    echo [ERROR] PowerShell not found.
+    pause
     exit /b 1
 )
 
-cmake -S . -B build
-if errorlevel 1 exit /b 1
-
-cmake --build build
-if errorlevel 1 exit /b 1
-
-echo.
-echo BUILD SUCCEEDED
-echo   build\monopoly.exe       interactive game
-echo   build\monopoly_test.exe  automation test entry
-echo   (exact paths may be under build\Debug or build\Release, depending on the generator)
-exit /b 0
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\build_and_test_windows.ps1" %*
+exit /b %ERRORLEVEL%

@@ -1,5 +1,6 @@
 #include "map/game_interfaces.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
@@ -123,8 +124,21 @@ int render_map(const GameMap *map,
         }
     }
     for (i = 0; i < RICH_MAP_SIZE; ++i) {
+        const MapCell *cell = game_map_cell_at(map, (int)i);
+        size_t player_index;
         game_map_screen_position((int)i, &x, &y);
         canvas[y][x].symbol = game_map_base_symbol(map, (int)i);
+        if (cell == NULL || cell->type != CELL_LAND ||
+            cell->owner_id == RICH_NO_OWNER) {
+            continue;
+        }
+        for (player_index = 0; player_index < player_count; ++player_index) {
+            if (players[player_index].id == cell->owner_id) {
+                canvas[y][x].color = players[player_index].color;
+                canvas[y][x].colored = 1;
+                break;
+            }
+        }
     }
     for (i = 0; i < player_count; ++i) {
         int position;
@@ -138,8 +152,8 @@ int render_map(const GameMap *map,
         if (occupant_count[i] == 0) continue;
         game_map_screen_position((int)i, &x, &y);
         player = first_occupant[i];
-        canvas[y][x].symbol = occupant_count[i] == 1
-            ? player->symbol : (char)('0' + occupant_count[i]);
+        /* 多人同格时显示调用方排在最前的玩家，运行时会把当前玩家排首位。 */
+        canvas[y][x].symbol = player->symbol;
         canvas[y][x].color = player->color;
         canvas[y][x].colored = 1;
     }
@@ -156,6 +170,7 @@ int render_map(const GameMap *map,
     }
     if (show_indices && !append_text(
             buffer, buffer_size, &used,
-            "\n关键位置：S=0, H=14, T=28, G=35, P=49, M=63, 矿地=64～69\n")) return 0;
+            "\n格子编号：沿顺时针方向依次为 0～69。\n"
+            "关键位置：S=0, H=14, T=28, G=35, P=49, M=63, 矿地=64～69\n")) return 0;
     return 1;
 }
