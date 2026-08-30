@@ -44,9 +44,17 @@ add_executable(test_a1 tests/test_a1.c)
 target_link_libraries(test_a1 PRIVATE monopoly_core)
 add_test(NAME A1_startup COMMAND test_a1)
 
+add_executable(test_a3 tests/test_a3.c)
+target_link_libraries(test_a3 PRIVATE monopoly_core)
+add_test(NAME A3_default_initial_money COMMAND test_a3)
+
 add_executable(test_a20 tests/test_a20.c)
 target_link_libraries(test_a20 PRIVATE monopoly_core)
 add_test(NAME A20_quit COMMAND test_a20)
+
+add_executable(test_a21 tests/test_a21.c)
+target_link_libraries(test_a21 PRIVATE monopoly_core)
+add_test(NAME A21_bankruptcy COMMAND test_a21)
 
 add_executable(test_a4 tests/test_a4_turn_manager.c)
 target_link_libraries(test_a4 PRIVATE monopoly_core)

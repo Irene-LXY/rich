@@ -87,5 +87,7 @@ int runtime_player_position(const GameRuntime *runtime, size_t player_index);
 int runtime_player_money(const GameRuntime *runtime, size_t player_index);
 int runtime_player_points(const GameRuntime *runtime, size_t player_index);
 int runtime_player_god_rounds(const GameRuntime *runtime, size_t player_index);
+int runtime_player_tool_count(const GameRuntime *runtime, size_t player_index);
+int runtime_player_is_active(const GameRuntime *runtime, size_t player_index);
 
 #endif

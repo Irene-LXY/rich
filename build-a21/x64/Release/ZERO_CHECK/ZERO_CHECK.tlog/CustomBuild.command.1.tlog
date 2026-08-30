@@ -1,0 +1,10 @@
+^E:\软件工程\开发过程\BUG\BUILD-A21\CMAKEFILES\E6CE34EE2DE84B2D421070D4363F47A0\GENERATE.STAMP.RULE
+setlocal
+"E:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SE:/软件工程/开发过程/bug -BE:/软件工程/开发过程/bug/build-a21 --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file E:/软件工程/开发过程/bug/build-a21/monopoly.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

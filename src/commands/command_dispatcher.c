@@ -132,6 +132,10 @@ CommandResult command_execute(
     (void)memcpy(buffer, input, strlen(input) + 1);
     text = trim(buffer);
     if (*text == '\0') {
+        if (game->runtime == 0 &&
+            game->setup_step == SETUP_INITIAL_MONEY) {
+            return startup_handle_input(game, text, message, message_size);
+        }
         write_message(message, message_size, "命令不能为空。\n");
         return COMMAND_INVALID;
     }

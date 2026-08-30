@@ -176,6 +176,8 @@ static A4MoveResult handle_property_landing(GameRuntime *rt,
                 result.toll, result.amount_paid);
         }
         if (result.player_bankrupt) {
+            (void)memset(rt->tools[player_index], 0,
+                         sizeof(rt->tools[player_index]));
             rt->pending_bankrupt_player_id = player_index + 1;
             notice_append(rt,
                 "玩家 %s 资金不足 0，宣告破产；%d 处房产已归还系统。\n",
@@ -942,4 +944,20 @@ int runtime_player_god_rounds(const GameRuntime *rt, size_t player_index)
 {
     return rt != NULL && player_index < (size_t)rt->player_count
         ? gift_shop_god_rounds(&rt->gift_shop, player_index) : -1;
+}
+
+int runtime_player_tool_count(const GameRuntime *rt, size_t player_index)
+{
+    if (rt == NULL || player_index >= (size_t)rt->player_count) {
+        return -1;
+    }
+    return (int)(rt->tools[player_index][1] +
+                 rt->tools[player_index][2] +
+                 rt->tools[player_index][3]);
+}
+
+int runtime_player_is_active(const GameRuntime *rt, size_t player_index)
+{
+    return rt != NULL && player_index < (size_t)rt->player_count
+        ? rt->players[player_index].active : 0;
 }

@@ -1,0 +1,52 @@
+Start testing: Aug 30 11:09 ÖĞ¹ú±ê×¼Ê±¼ä
+----------------------------------------------------------
+6/10 Testing: A21_bankruptcy
+6/10 Test: A21_bankruptcy
+Command: "E:/è½¯ä»¶å·¥ç¨‹/å¼€å‘è¿‡ç¨‹/bug/build-a21/Release/test_a21.exe"
+Directory: E:/è½¯ä»¶å·¥ç¨‹/å¼€å‘è¿‡ç¨‹/bug/build-a21
+"A21_bankruptcy" start time: Aug 30 11:09 ÖĞ¹ú±ê×¼Ê±¼ä
+Output:
+----------------------------------------------------------
+[PASS] Case_A21_001
+[PASS] Case_A21_002
+[PASS] Case_A21_003
+[PASS] Case_A21_004
+[PASS] Case_A21_005
+[PASS] Case_A21_006
+[PASS] Case_A21_007
+[PASS] Case_A21_008
+[PASS] Case_A21_009
+[PASS] Case_A21_010
+[PASS] Case_A21_011
+[PASS] Case_A21_012
+[PASS] Case_A21_013
+[PASS] Case_A21_014
+[PASS] Case_A21_015
+[PASS] Case_A21_016
+[PASS] Case_A21_017
+[PASS] Case_A21_018
+[PASS] Case_A21_019
+[PASS] Case_A21_020
+[PASS] Case_A21_021
+[PASS] Case_A21_022
+[PASS] Case_A21_023
+[PASS] Case_A21_024
+[PASS] Case_A21_025
+[PASS] Case_A21_026
+[PASS] Case_A21_027
+[PASS] Case_A21_028
+[PASS] Case_A21_029
+[PASS] Case_A21_030
+[PASS] Case_A21_031
+[PASS] Case_A21_032
+[PASS] Case_A21_033
+[PASS] A21: 33/33 Excel cases passed.
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"A21_bankruptcy" end time: Aug 30 11:09 ÖĞ¹ú±ê×¼Ê±¼ä
+"A21_bankruptcy" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Aug 30 11:09 ÖĞ¹ú±ê×¼Ê±¼ä

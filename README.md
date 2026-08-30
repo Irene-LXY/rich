@@ -39,4 +39,28 @@ ctest --test-dir build-test --output-on-failure
 - `build-test/test_a15.exe`：A15 自动测试；
 - `build-test/test_a16.exe`：A16 自动测试。
 
+## A21 自动化测试
+
+`tests/test_a21.c` 覆盖 Excel 中 `Case_A21_001` 至
+`Case_A21_033`，逐条输出对应编号的通过/失败结果。
+
+在项目根目录运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_a21_tests.ps1
+```
+
+脚本会自动定位 PATH 中的 CMake；若 PATH 中没有 CMake，也会尝试使用
+Visual Studio 2022 自带的 CMake。它随后配置 `build-a21`、编译
+`test_a21` 并通过 CTest 执行全部 33 条用例。全部通过时脚本退出码为 0，
+任何配置、编译或测试失败都会返回非零退出码。
+
+也可以手动执行：
+
+```powershell
+cmake -S . -B build-a21
+cmake --build build-a21 --config Release --target test_a21
+ctest --test-dir build-a21 -C Release -R "^A21_bankruptcy$" --output-on-failure -V
+```
+
 手动测试特殊格子：启动 `monopoly.exe`，完成开局输入后使用 `Step 35` 进入礼品屋，使用 `Step 63` 进入魔法屋。

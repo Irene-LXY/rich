@@ -1,0 +1,13 @@
+E:\软件工程\开发过程\bug\src\core\game.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\game.obj
+E:\软件工程\开发过程\bug\src\startup\startup.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\startup.obj
+E:\软件工程\开发过程\bug\src\commands\command_dispatcher.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\command_dispatcher.obj
+E:\软件工程\开发过程\bug\src\commands\quit_command.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\quit_command.obj
+E:\软件工程\开发过程\bug\src\commands\query_format.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\query_format.obj
+E:\软件工程\开发过程\bug\src\runtime\runtime.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\runtime.obj
+E:\软件工程\开发过程\bug\src\story\gift.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\gift.obj
+E:\软件工程\开发过程\bug\src\story\magic.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\magic.obj
+E:\软件工程\开发过程\bug\src\character.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\character.obj
+E:\软件工程\开发过程\bug\src\a4\a4_turn_manager.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\a4_turn_manager.obj
+E:\软件工程\开发过程\bug\src\map\map.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\map.obj
+E:\软件工程\开发过程\bug\src\map\game_interfaces.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\game_interfaces.obj
+E:\软件工程\开发过程\bug\src\property\property_system.c;E:\软件工程\开发过程\bug\build-a21\monopoly_core.dir\Release\property_system.obj
