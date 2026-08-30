@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A21_009",
+  "case_name": "财神附身免过路费不破产",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "A",
+      "Q"
+    ],
+    "current_user": "A",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "A",
+        "fund": 100,
+        "credit": 0,
+        "position": 4,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 3
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 5,
+        "owner": "Q",
+        "level": 0
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "A",
+        "fund": 100
+      },
+      {
+        "id": "Q",
+        "fund": 1000
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

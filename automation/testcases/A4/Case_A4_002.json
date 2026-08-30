@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A4_002",
+  "case_name": "坐牢玩家跳过回合",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "A",
+      "S",
+      "Q"
+    ],
+    "current_user": "A",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "A",
+        "fund": 1000,
+        "credit": 0,
+        "position": 13,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "S",
+        "fund": 1000,
+        "credit": 0,
+        "position": 49,
+        "status": "JAIL",
+        "remaining_rounds": 1,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "S",
+        "remaining_rounds": 0
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A21_024",
+  "case_name": "破产后仅剩一人结束",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "A",
+      "Q"
+    ],
+    "current_user": "A",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "A",
+        "fund": 0,
+        "credit": 0,
+        "position": 28,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 29,
+        "owner": "Q",
+        "level": 3
+      },
+      {
+        "position": 8,
+        "owner": "A",
+        "level": 0
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    }
+  ],
+  "expected": {
+    "game_status": "FINISHED",
+    "phase": "ENDED",
+    "winner": "Q",
+    "players": [
+      {
+        "id": "A",
+        "fund": -1000,
+        "status": "BANKRUPT"
+      },
+      {
+        "id": "Q",
+        "fund": 1000
+      }
+    ],
+    "properties_absent": [
+      8
+    ]
+  },
+  "expected_result": "PASS"
+}

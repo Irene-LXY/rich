@@ -1,0 +1,134 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A21_033",
+  "case_name": "同一轮两名玩家相继破产",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "A",
+      "Q",
+      "S",
+      "J"
+    ],
+    "current_user": "A",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "A",
+        "fund": 300,
+        "credit": 0,
+        "position": 27,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 0,
+        "position": 13,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "S",
+        "fund": 100,
+        "credit": 0,
+        "position": 4,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "J",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [
+      {
+        "position": 29,
+        "owner": "Q",
+        "level": 1
+      },
+      {
+        "position": 5,
+        "owner": "J",
+        "level": 1
+      }
+    ],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 2
+      }
+    },
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    },
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "J",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "A",
+        "fund": -200,
+        "status": "BANKRUPT"
+      },
+      {
+        "id": "S",
+        "fund": -100,
+        "status": "BANKRUPT"
+      },
+      {
+        "id": "Q",
+        "fund": 1500
+      },
+      {
+        "id": "J",
+        "fund": 1100
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}

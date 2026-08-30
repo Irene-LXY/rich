@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "case_id": "Case_A4_019",
+  "case_name": "停在矿地获得点数",
+  "map_file": "map.json",
+  "preset": {
+    "users": [
+      "Q",
+      "A"
+    ],
+    "current_user": "Q",
+    "phase": "COMMAND",
+    "game_status": "RUNNING",
+    "players": [
+      {
+        "id": "Q",
+        "fund": 1000,
+        "credit": 15,
+        "position": 68,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      },
+      {
+        "id": "A",
+        "fund": 1000,
+        "credit": 0,
+        "position": 0,
+        "status": "NORMAL",
+        "remaining_rounds": 0,
+        "items": {
+          "BLOCK": 0,
+          "BOMB": 0,
+          "ROBOT": 0
+        },
+        "god_of_wealth_rounds": 0
+      }
+    ],
+    "properties": [],
+    "map_items": [],
+    "dice_sequence": []
+  },
+  "actions": [
+    {
+      "command": "STEP",
+      "params": {
+        "steps": 1
+      }
+    }
+  ],
+  "expected": {
+    "current_user": "A",
+    "phase": "COMMAND",
+    "players": [
+      {
+        "id": "Q",
+        "credit": 35,
+        "fund": 1000,
+        "position": 69
+      }
+    ]
+  },
+  "expected_result": "PASS"
+}
