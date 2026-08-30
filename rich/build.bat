@@ -1,26 +1,17 @@
 @echo off
-rem Portable build: let CMake discover the installed C11 compiler.
-setlocal EnableExtensions
+rem One-click build + test (Windows).
+rem Delegates to the universal PowerShell script, which auto-detects the
+rem toolchain and picks a working CMake generator (avoids NMake+cl.exe,
+rem which needs a vcvars environment and fails when double-clicked).
+setlocal
 cd /d "%~dp0"
-set "BUILD_DIR=%~1"
-if not defined BUILD_DIR set "BUILD_DIR=build"
 
-where cmake >nul 2>nul
+where powershell >nul 2>nul
 if errorlevel 1 (
-    echo [ERROR] cmake not found. Install CMake and a C11 compiler first.
+    echo [ERROR] PowerShell not found.
+    pause
     exit /b 1
 )
 
-cmake -S . -B "%BUILD_DIR%"
-if errorlevel 1 exit /b 1
-
-cmake --build "%BUILD_DIR%"
-if errorlevel 1 exit /b 1
-
-echo.
-echo BUILD SUCCEEDED
-echo   interactive targets: monopoly / rich
-echo   automation target:   monopoly_test
-echo   build directory:      %BUILD_DIR%
-echo   Multi-config generators may place executables under Debug or Release.
-exit /b 0
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\build_and_test_windows.ps1" %*
+exit /b %ERRORLEVEL%

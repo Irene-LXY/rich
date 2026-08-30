@@ -1,5 +1,6 @@
 # 编译产物
 build/
+build-local/
 build_c/
 build_cpp/
 *.exe
