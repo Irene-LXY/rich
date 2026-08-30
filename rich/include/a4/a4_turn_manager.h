@@ -136,7 +136,7 @@ typedef struct A4TurnHooks {
     );
 
     /*
-     * A8 掷骰/移动接口。forced_steps == 0 表示普通 Roll；大于 0 表示测试命令 Step n。
+     * A8 掷骰/移动接口。forced_steps < 0 表示普通 Roll；>= 0 表示测试命令 Step n（0 为原地）。
      * actual_steps 必须写入实际移动步数。
      */
     A4MoveResult (*roll_and_move)(
@@ -216,13 +216,19 @@ A4TurnStatus a4_turn_manager_init(
 
 A4TurnStatus a4_turn_manager_begin(A4TurnManager *manager);
 
+/* 从指定玩家开始回合（不触发轮空），供自动化预设直接指定当前玩家时使用。 */
+A4TurnStatus a4_turn_manager_begin_at(A4TurnManager *manager, size_t start_index);
+
+/* 跳过当前玩家的本次回合（若其处于监狱/医院轮空状态），并推进到下一名玩家。 */
+A4TurnStatus a4_turn_manager_skip_current(A4TurnManager *manager);
+
 A4TurnStatus a4_turn_manager_run_pre_roll_action(
     A4TurnManager *manager,
     A4PlayerId actor_id,
     const A4PreRollAction *action
 );
 
-/* forced_steps == 0: 普通 Roll；forced_steps > 0: 可测试的 Step n。 */
+/* forced_steps < 0: 普通 Roll；>= 0: 可测试的 Step n（0 为原地）。 */
 A4TurnStatus a4_turn_manager_roll(
     A4TurnManager *manager,
     A4PlayerId actor_id,

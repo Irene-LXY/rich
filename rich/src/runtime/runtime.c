@@ -215,7 +215,7 @@ static A4MoveResult handle_property_landing(GameRuntime *rt,
 
 /* ---- A4 hooks 实现 ---- */
 
-/* 掷骰移动（A8 逻辑）。forced_steps>0 用于测试注入。 */
+/* 掷骰移动（A8 逻辑）。forced_steps>=0 表示指定步数（Step n，0 为原地）；<0 表示普通 Roll。 */
 static A4MoveResult roll_and_move_impl(
     void *context,
     const A4TurnSnapshot *snapshot,
@@ -227,7 +227,7 @@ static A4MoveResult roll_and_move_impl(
     int player_id = (int)snapshot->current_player_id;
     int idx = player_id - 1;
     PlayerToken *token = &rt->players[idx];
-    int steps = forced_steps > 0 ? forced_steps : dice_roll(&rt->dice_iface);
+    int steps = forced_steps >= 0 ? forced_steps : dice_roll(&rt->dice_iface);
     MoveContext move_ctx;
     ToolMoveContext tool_ctx;
     const MapCell *cell;
@@ -287,12 +287,6 @@ static A4MoveResult roll_and_move_impl(
                 notice_append(rt,
                     "到达道具屋。欢迎光临！当前点数 %d，低于最便宜道具的 30 点，自动退出。\n",
                     rt->gift_shop.points[idx]);
-                break;
-            }
-            if (rt->tools[idx][1] + rt->tools[idx][2] +
-                rt->tools[idx][3] >= 10U) {
-                notice_append(rt,
-                    "到达道具屋，但道具数量已达上限 10，自动退出道具屋。\n");
                 break;
             }
             rt->context = RUNTIME_CONTEXT_TOOL_SHOP;
@@ -521,7 +515,7 @@ static int runtime_move(GameRuntime *rt,
 {
     A4TurnSnapshot snapshot;
     A4TurnStatus status;
-    if (rt == NULL || message == NULL || message_size == 0 || forced_steps < 0) {
+    if (rt == NULL || message == NULL || message_size == 0 || forced_steps < -1) {
         return 1;
     }
     notice_clear(rt);
@@ -543,15 +537,45 @@ static int runtime_move(GameRuntime *rt,
 
 int runtime_roll(GameRuntime *rt, char *message, size_t message_size)
 {
-    return runtime_move(rt, 0, message, message_size);
+    return runtime_move(rt, -1, message, message_size);
 }
 
 int runtime_step(GameRuntime *rt, int steps, char *message, size_t message_size)
 {
-    if (steps <= 0) {
+    if (steps < 0) {
         return 1;
     }
     return runtime_move(rt, steps, message, message_size);
+}
+
+int runtime_current_player_restrained(const GameRuntime *rt)
+{
+    A4TurnSnapshot snapshot;
+    size_t index;
+    if (rt == NULL) {
+        return 0;
+    }
+    snapshot = a4_turn_manager_snapshot(&rt->turn_manager);
+    if (snapshot.current_player_id == 0U) {
+        return 0;
+    }
+    index = snapshot.current_player_index;
+    if (index >= (size_t)rt->player_count) {
+        return 0;
+    }
+    return rt->turn_manager.players[index].skip_turns_remaining > 0U;
+}
+
+int runtime_skip_current_turn(GameRuntime *rt, char *message, size_t message_size)
+{
+    A4TurnStatus status;
+    if (rt == NULL || message == NULL || message_size == 0) {
+        return 1;
+    }
+    notice_clear(rt);
+    status = a4_turn_manager_skip_current(&rt->turn_manager);
+    (void)snprintf(message, message_size, "%s", rt->notice);
+    return status == A4_TURN_OK ? 0 : 1;
 }
 
 int runtime_answer(GameRuntime *rt,
@@ -1104,11 +1128,12 @@ GameRuntime *runtime_load_preset(const AutomationPreset *preset)
         }
     }
 
-    (void)a4_turn_manager_begin(&rt->turn_manager);
-    if (preset->current_user_index >= 0 &&
-        preset->current_user_index < preset->player_count) {
-        rt->turn_manager.current_player_index =
-            (size_t)preset->current_user_index;
+    {
+        size_t start_index =
+            (preset->current_user_index >= 0 &&
+             preset->current_user_index < preset->player_count)
+                ? (size_t)preset->current_user_index : 0U;
+        (void)a4_turn_manager_begin_at(&rt->turn_manager, start_index);
     }
     rt->context = RUNTIME_CONTEXT_TURN_START;
 

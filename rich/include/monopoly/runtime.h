@@ -36,6 +36,12 @@ int runtime_roll(GameRuntime *runtime, char *message, size_t message_size);
 /* 测试用遥控骰子，对应需求命令 Step n；steps 必须大于 0。 */
 int runtime_step(GameRuntime *runtime, int steps, char *message, size_t message_size);
 
+/* 当前玩家是否处于监狱/医院轮空状态（skip_turns_remaining > 0）。 */
+int runtime_current_player_restrained(const GameRuntime *runtime);
+
+/* 跳过当前玩家的本次回合（监狱/医院轮空），并推进到下一名玩家。返回 0 成功。 */
+int runtime_skip_current_turn(GameRuntime *runtime, char *message, size_t message_size);
+
 /* 处理礼品屋或魔法屋正在等待的输入。0=已接受，1=输入无效，负数=无场景。 */
 int runtime_answer(GameRuntime *runtime,
                    const char *answer,

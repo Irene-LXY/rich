@@ -18,12 +18,14 @@
 param(
     [string]$Generator = '',       # 可选：显式指定生成器，如 "Ninja" / "MinGW Makefiles" / "Visual Studio 17 2022"
     [string]$BuildType = 'Debug',
-    [switch]$SkipTest
+    [switch]$SkipTest,
+    [switch]$NoPause
 )
 
 $ErrorActionPreference = 'Stop'
 
 function Invoke-Pause {
+    if ($NoPause) { return }
     # 仅在交互式控制台暂停；CI/重定向环境不卡住
     if (-not [Environment]::UserInteractive) { return }
     try {

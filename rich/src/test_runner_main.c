@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "map/map.h"
 #include "monopoly/automation.h"
@@ -504,6 +505,17 @@ static int build_preset(const JValue *case_obj, AutomationPreset *p, char *err, 
     return 0;
 }
 
+static bool cmd_equals_ignore_case(const char *left, const char *right) {
+    while (*left != '\0' && *right != '\0') {
+        if (tolower((unsigned char)*left) != tolower((unsigned char)*right)) {
+            return false;
+        }
+        left++;
+        right++;
+    }
+    return *left == '\0' && *right == '\0';
+}
+
 static int execute_actions(GameRuntime *rt, const JValue *actions,
                            const int *dice, size_t dice_count,
                            char *err, size_t errsz) {
@@ -520,35 +532,50 @@ static int execute_actions(GameRuntime *rt, const JValue *actions,
 
         if (cmd == NULL) { seterr(err, errsz, "action missing command"); return -1; }
 
-        if (strcmp(cmd, "ROLL") == 0) {
-            int steps;
-            if (dice_index >= dice_count) { seterr(err, errsz, "DICE_SEQUENCE_EMPTY"); return -1; }
-            steps = dice[dice_index++];
-            if (steps < 1 || steps > 6) { seterr(err, errsz, "invalid dice value"); return -1; }
-            if (runtime_step(rt, steps, msg, sizeof(msg)) != 0) { seterr(err, errsz, "move failed"); return -1; }
-        } else if (strcmp(cmd, "STEP") == 0) {
-            int steps = (int)jv_int(jv_get(params, "steps"), 0);
-            if (steps <= 0) { seterr(err, errsz, "invalid steps"); return -1; }
-            if (runtime_step(rt, steps, msg, sizeof(msg)) != 0) { seterr(err, errsz, "move failed"); return -1; }
-        } else if (strcmp(cmd, "SELL") == 0) {
+        if (cmd_equals_ignore_case(cmd, "ROLL")) {
+            if (runtime_current_player_restrained(rt)) {
+                if (runtime_skip_current_turn(rt, msg, sizeof(msg)) != 0) {
+                    seterr(err, errsz, "skip failed");
+                    return -1;
+                }
+            } else if (dice_index >= dice_count) {
+                seterr(err, errsz, "DICE_SEQUENCE_EMPTY");
+                return -1;
+            } else {
+                int steps = dice[dice_index++];
+                if (steps < 1 || steps > 6) { seterr(err, errsz, "invalid dice value"); return -1; }
+                if (runtime_step(rt, steps, msg, sizeof(msg)) != 0) { seterr(err, errsz, "move failed"); return -1; }
+            }
+        } else if (cmd_equals_ignore_case(cmd, "STEP")) {
+            if (runtime_current_player_restrained(rt)) {
+                if (runtime_skip_current_turn(rt, msg, sizeof(msg)) != 0) {
+                    seterr(err, errsz, "skip failed");
+                    return -1;
+                }
+            } else {
+                int steps = (int)jv_int(jv_get(params, "steps"), 0);
+                if (steps < 0) { seterr(err, errsz, "invalid steps"); return -1; }
+                if (runtime_step(rt, steps, msg, sizeof(msg)) != 0) { seterr(err, errsz, "move failed"); return -1; }
+            }
+        } else if (cmd_equals_ignore_case(cmd, "SELL")) {
             int pos = (int)jv_int(jv_get(params, "position"), -1);
             if (pos < 0 || pos >= RICH_MAP_SIZE) { seterr(err, errsz, "invalid position"); return -1; }
             (void)runtime_sell(rt, pos, msg, sizeof(msg));
-        } else if (strcmp(cmd, "BLOCK") == 0) {
+        } else if (cmd_equals_ignore_case(cmd, "BLOCK")) {
             int off = (int)jv_int(jv_get(params, "offset"), 999);
             if (off < -10 || off > 10) { seterr(err, errsz, "offset out of range"); return -1; }
             (void)runtime_place_tool(rt, 1, off, msg, sizeof(msg));
-        } else if (strcmp(cmd, "BOMB") == 0) {
+        } else if (cmd_equals_ignore_case(cmd, "BOMB")) {
             int off = (int)jv_int(jv_get(params, "offset"), 999);
             if (off < -10 || off > 10) { seterr(err, errsz, "offset out of range"); return -1; }
             (void)runtime_place_tool(rt, 3, off, msg, sizeof(msg));
-        } else if (strcmp(cmd, "ROBOT") == 0) {
+        } else if (cmd_equals_ignore_case(cmd, "ROBOT")) {
             (void)runtime_use_robot(rt, msg, sizeof(msg));
-        } else if (strcmp(cmd, "QUERY") == 0) {
+        } else if (cmd_equals_ignore_case(cmd, "QUERY")) {
             (void)runtime_query(rt, msg, sizeof(msg));
-        } else if (strcmp(cmd, "HELP") == 0) {
+        } else if (cmd_equals_ignore_case(cmd, "HELP")) {
             (void)runtime_help(rt, msg, sizeof(msg));
-        } else if (strcmp(cmd, "ANSWER") == 0) {
+        } else if (cmd_equals_ignore_case(cmd, "ANSWER")) {
             const char *value = jv_str(jv_get(params, "value"));
             if (value == NULL) { seterr(err, errsz, "answer missing value"); return -1; }
             if (runtime_answer(rt, value, msg, sizeof(msg)) < 0) { seterr(err, errsz, "answer failed"); return -1; }
@@ -560,7 +587,7 @@ static int execute_actions(GameRuntime *rt, const JValue *actions,
                 seterr(err, errsz, "post-roll transition failed");
                 return -1;
             }
-        } else if (strcmp(cmd, "QUIT") == 0) {
+        } else if (cmd_equals_ignore_case(cmd, "QUIT")) {
             (void)runtime_finish(rt);
             break;
         } else {

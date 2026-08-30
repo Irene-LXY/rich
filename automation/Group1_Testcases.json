@@ -4249,7 +4249,7 @@
         }
       ],
       "expected": {
-        "current_user": "A",
+        "current_user": "Q",
         "players": [
           {
             "id": "Q",
@@ -4258,7 +4258,8 @@
               "BLOCK": 10,
               "BOMB": 0,
               "ROBOT": 0
-            }
+            },
+            "position": 28
           }
         ]
       }

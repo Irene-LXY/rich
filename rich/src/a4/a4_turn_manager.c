@@ -416,6 +416,43 @@ A4TurnStatus a4_turn_manager_begin(A4TurnManager *manager)
     return a4_start_or_skip_current_turn(manager, A4_STATE_TURN_STARTED);
 }
 
+A4TurnStatus a4_turn_manager_begin_at(A4TurnManager *manager, size_t start_index)
+{
+    if (manager == NULL) {
+        return A4_TURN_ERR_INVALID_ARGUMENT;
+    }
+    if (manager->started) {
+        return a4_fail(manager, A4_TURN_ERR_ALREADY_STARTED, NULL);
+    }
+    if (a4_participating_player_count(manager) == 0U) {
+        return a4_fail(manager, A4_TURN_ERR_NO_ACTIVE_PLAYER, NULL);
+    }
+    if (start_index >= manager->player_count) {
+        return a4_fail(manager, A4_TURN_ERR_INVALID_ARGUMENT, "start_index");
+    }
+
+    manager->started = true;
+    manager->current_player_index = start_index;
+    manager->turn_number = 1U;
+    manager->round_number = 1U;
+    manager->has_rolled = false;
+    manager->last_roll_steps = 0;
+    manager->phase = A4_TURN_PHASE_PRE_ROLL;
+    a4_emit_state_changed(manager, A4_STATE_TURN_STARTED);
+    return A4_TURN_OK;
+}
+
+A4TurnStatus a4_turn_manager_skip_current(A4TurnManager *manager)
+{
+    if (manager == NULL) {
+        return A4_TURN_ERR_INVALID_ARGUMENT;
+    }
+    if (!manager->started) {
+        return a4_fail(manager, A4_TURN_ERR_NOT_STARTED, NULL);
+    }
+    return a4_start_or_skip_current_turn(manager, A4_STATE_TURN_ADVANCED);
+}
+
 A4TurnStatus a4_turn_manager_run_pre_roll_action(
     A4TurnManager *manager,
     A4PlayerId actor_id,
@@ -468,7 +505,7 @@ A4TurnStatus a4_turn_manager_roll(
     if (status != A4_TURN_OK) {
         return status;
     }
-    if (forced_steps < 0) {
+    if (forced_steps < -1) {
         return a4_fail(manager, A4_TURN_ERR_INVALID_ARGUMENT, "forced_steps");
     }
     if (manager->has_rolled ||
