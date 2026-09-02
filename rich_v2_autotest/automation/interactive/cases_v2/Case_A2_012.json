@@ -1,0 +1,15 @@
+{
+  "name": "Case_A2_012 A2 玩家与角色选择",
+  "input": [
+    "10000",
+    "21",
+    "quit"
+  ],
+  "expect": [
+    "阿土伯",
+    "轮到玩家"
+  ],
+  "forbid": [],
+  "timeout_ms": 5000,
+  "exit_code": 0
+}

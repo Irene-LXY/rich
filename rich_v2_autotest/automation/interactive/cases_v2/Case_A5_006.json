@@ -1,0 +1,15 @@
+{
+  "name": "Case_A5_006 A5 地图显示",
+  "input": [
+    "10000",
+    "12",
+    "quit"
+  ],
+  "expect": [
+    "大富翁启动成功",
+    "轮到玩家"
+  ],
+  "forbid": [],
+  "timeout_ms": 5000,
+  "exit_code": 0
+}

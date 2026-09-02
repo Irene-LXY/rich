@@ -1,0 +1,15 @@
+{
+  "name": "Case_A3_005 A3 设置初始资金",
+  "input": [
+    "1001",
+    "12",
+    "quit"
+  ],
+  "expect": [
+    "1001",
+    "轮到玩家"
+  ],
+  "forbid": [],
+  "timeout_ms": 5000,
+  "exit_code": 0
+}

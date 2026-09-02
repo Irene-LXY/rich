@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="258" failures="18" errors="35">
+  <testsuite name="rich-automation" tests="258" failures="18" errors="35">
+    <testcase name="Case_A4_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_0.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.current_user: scalar not equal</failure>
+    </testcase>
+    <testcase name="Case_A4_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_1.json" />
+    <testcase name="Case_A4_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_2.json" />
+    <testcase name="Case_A4_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_3.json" />
+    <testcase name="Case_A4_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_4.json" />
+    <testcase name="Case_A4_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_5.json" />
+    <testcase name="Case_A4_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_6.json" />
+    <testcase name="Case_A4_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_7.json" />
+    <testcase name="Case_A4_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_8.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A4_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_9.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A4_012" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_10.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A4_013" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_11.json" />
+    <testcase name="Case_A4_014" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_12.json" />
+    <testcase name="Case_A4_015" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_13.json" />
+    <testcase name="Case_A4_016" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_14.json" />
+    <testcase name="Case_A4_017" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_15.json" />
+    <testcase name="Case_A4_018" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_16.json" />
+    <testcase name="Case_A4_019" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_17.json" />
+    <testcase name="Case_A4_021" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_18.json" />
+    <testcase name="Case_A4_022" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_19.json" />
+    <testcase name="Case_A4_024" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_20.json" />
+    <testcase name="Case_A5_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_21.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.display_cells: field missing in actual</failure>
+    </testcase>
+    <testcase name="Case_A5_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_22.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.display_cells: field missing in actual</failure>
+    </testcase>
+    <testcase name="Case_A5_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_23.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.display_cells: field missing in actual</failure>
+    </testcase>
+    <testcase name="Case_A5_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_24.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.display_cells: field missing in actual</failure>
+    </testcase>
+    <testcase name="Case_A7_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_25.json" />
+    <testcase name="Case_A7_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_26.json" />
+    <testcase name="Case_A7_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_27.json" />
+    <testcase name="Case_A7_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_28.json" />
+    <testcase name="Case_A7_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_29.json" />
+    <testcase name="Case_A7_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_30.json" />
+    <testcase name="Case_A7_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_31.json" />
+    <testcase name="Case_A7_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_32.json" />
+    <testcase name="Case_A7_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_33.json" />
+    <testcase name="Case_A7_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_34.json" />
+    <testcase name="Case_A7_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_35.json" />
+    <testcase name="Case_A7_012" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_36.json" />
+    <testcase name="Case_A7_013" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_37.json" />
+    <testcase name="Case_A7_014" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_38.json" />
+    <testcase name="Case_A7_015" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_39.json" />
+    <testcase name="Case_A7_016" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_40.json" />
+    <testcase name="Case_A7_017" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_41.json" />
+    <testcase name="Case_A7_018" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_42.json" />
+    <testcase name="Case_A7_019" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_43.json" />
+    <testcase name="Case_A7_020" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_44.json" />
+    <testcase name="Case_A8_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_45.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_46.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_47.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_48.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_49.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_50.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_51.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_52.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_53.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_012" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_54.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_013" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_55.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_014" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_56.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_015" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_57.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_016" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_58.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_017" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_59.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_018" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_60.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_019" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_61.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_020" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_62.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_021" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_63.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A8_022" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_64.json">
+      <error message="ERROR">[INVALID_ACTION] : DICE_SEQUENCE_EMPTY</error>
+    </testcase>
+    <testcase name="Case_A9_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_65.json" />
+    <testcase name="Case_A9_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_66.json" />
+    <testcase name="Case_A9_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_67.json" />
+    <testcase name="Case_A9_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_68.json" />
+    <testcase name="Case_A9_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_69.json" />
+    <testcase name="Case_A9_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_70.json" />
+    <testcase name="Case_A9_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_71.json" />
+    <testcase name="Case_A9_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_72.json" />
+    <testcase name="Case_A9_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_73.json" />
+    <testcase name="Case_A9_012" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_74.json" />
+    <testcase name="Case_A9_014" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_75.json" />
+    <testcase name="Case_A9_015" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_76.json" />
+    <testcase name="Case_A9_016" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_77.json" />
+    <testcase name="Case_A10_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_78.json" />
+    <testcase name="Case_A10_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_79.json" />
+    <testcase name="Case_A10_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_80.json" />
+    <testcase name="Case_A10_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_81.json" />
+    <testcase name="Case_A10_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_82.json" />
+    <testcase name="Case_A10_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_83.json" />
+    <testcase name="Case_A10_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_84.json" />
+    <testcase name="Case_A10_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_85.json" />
+    <testcase name="Case_A10_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_86.json" />
+    <testcase name="Case_A10_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_87.json" />
+    <testcase name="Case_A10_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_88.json" />
+    <testcase name="Case_A10_012" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_89.json" />
+    <testcase name="Case_A10_013" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_90.json" />
+    <testcase name="Case_A10_014" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_91.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.players[id=A].fund: scalar not equal
+[ASSERT_NOT_EQUAL] actual.players[id=S].fund: scalar not equal</failure>
+    </testcase>
+    <testcase name="Case_A10_015" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_92.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.players[id=S].fund: scalar not equal
+[ASSERT_NOT_EQUAL] actual.players[id=J].fund: scalar not equal</failure>
+    </testcase>
+    <testcase name="Case_A10_016" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_93.json" />
+    <testcase name="Case_A10_017" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_94.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.players[id=Q].fund: scalar not equal
+[ASSERT_NOT_EQUAL] actual.players[id=A].fund: scalar not equal</failure>
+    </testcase>
+    <testcase name="Case_A10_018" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_95.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.players[id=J].fund: scalar not equal
+[ASSERT_NOT_EQUAL] actual.players[id=Q].fund: scalar not equal</failure>
+    </testcase>
+    <testcase name="Case_A10_019" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_96.json" />
+    <testcase name="Case_A10_020" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_97.json" />
+    <testcase name="Case_A10_021" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_98.json" />
+    <testcase name="Case_A10_022" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_99.json" />
+    <testcase name="Case_A10_023" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_100.json" />
+    <testcase name="Case_A10_024" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_101.json" />
+    <testcase name="Case_A10_025" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_102.json" />
+    <testcase name="Case_A11_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_103.json" />
+    <testcase name="Case_A11_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_104.json" />
+    <testcase name="Case_A11_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_105.json" />
+    <testcase name="Case_A11_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_106.json" />
+    <testcase name="Case_A11_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_107.json" />
+    <testcase name="Case_A11_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_108.json" />
+    <testcase name="Case_A11_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_109.json" />
+    <testcase name="Case_A11_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_110.json" />
+    <testcase name="Case_A11_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_111.json" />
+    <testcase name="Case_A11_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_112.json" />
+    <testcase name="Case_A11_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_113.json" />
+    <testcase name="Case_A11_012" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_114.json" />
+    <testcase name="Case_A11_013" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_115.json" />
+    <testcase name="Case_A11_014" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_116.json" />
+    <testcase name="Case_A11_015" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_117.json" />
+    <testcase name="Case_A11_016" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_118.json" />
+    <testcase name="Case_A11_017" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_119.json" />
+    <testcase name="Case_A11_018" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_120.json" />
+    <testcase name="Case_A11_019" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_121.json" />
+    <testcase name="Case_A11_020" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_122.json" />
+    <testcase name="Case_A11_021" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_123.json" />
+    <testcase name="Case_A11_029" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_124.json" />
+    <testcase name="Case_A11_030" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_125.json" />
+    <testcase name="Case_A12_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_126.json" />
+    <testcase name="Case_A12_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_127.json" />
+    <testcase name="Case_A12_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_128.json" />
+    <testcase name="Case_A12_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_129.json" />
+    <testcase name="Case_A12_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_130.json" />
+    <testcase name="Case_A12_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_131.json" />
+    <testcase name="Case_A12_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_132.json" />
+    <testcase name="Case_A12_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_133.json" />
+    <testcase name="Case_A13_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_134.json" />
+    <testcase name="Case_A13_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_135.json" />
+    <testcase name="Case_A13_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_136.json" />
+    <testcase name="Case_A13_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_137.json" />
+    <testcase name="Case_A13_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_138.json" />
+    <testcase name="Case_A13_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_139.json" />
+    <testcase name="Case_A13_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_140.json" />
+    <testcase name="Case_A13_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_141.json" />
+    <testcase name="Case_A13_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_142.json" />
+    <testcase name="Case_A13_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_143.json" />
+    <testcase name="Case_A14_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_144.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A14_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_145.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A14_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_146.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A14_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_147.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A14_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_148.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A14_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_149.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A14_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_150.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A14_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_151.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A14_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_152.json">
+      <error message="ERROR">[INVALID_ACTION] : move failed</error>
+    </testcase>
+    <testcase name="Case_A14_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_153.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.fortune: field missing in actual
+[ASSERT_NOT_EQUAL] actual.players[id=Q].fund: scalar not equal
+[ASSERT_NOT_EQUAL] actual.players[id=Q].god_of_wealth_rounds: scalar not equal
+[ASSERT_NOT_EQUAL] actual.players[id=A].fund: scalar not equal</failure>
+    </testcase>
+    <testcase name="Case_A14_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_154.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A14_012" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_155.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A15_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_156.json" />
+    <testcase name="Case_A15_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_157.json" />
+    <testcase name="Case_A15_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_158.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.players[id=Q].god_of_wealth_rounds: scalar not equal</failure>
+    </testcase>
+    <testcase name="Case_A15_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_159.json" />
+    <testcase name="Case_A15_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_160.json" />
+    <testcase name="Case_A15_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_161.json" />
+    <testcase name="Case_A15_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_162.json" />
+    <testcase name="Case_A15_013" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_163.json" />
+    <testcase name="Case_A16_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_164.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.display_cells: field missing in actual</failure>
+    </testcase>
+    <testcase name="Case_A16_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_165.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.display_cells: field missing in actual</failure>
+    </testcase>
+    <testcase name="Case_A16_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_166.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.display_cells: field missing in actual</failure>
+    </testcase>
+    <testcase name="Case_A16_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_167.json" />
+    <testcase name="Case_A16_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_168.json" />
+    <testcase name="Case_A16_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_169.json" />
+    <testcase name="Case_A16_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_170.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.display_cells: field missing in actual</failure>
+    </testcase>
+    <testcase name="Case_A17_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_171.json" />
+    <testcase name="Case_A17_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_172.json" />
+    <testcase name="Case_A17_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_173.json" />
+    <testcase name="Case_A17_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_174.json" />
+    <testcase name="Case_A17_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_175.json" />
+    <testcase name="Case_A17_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_176.json" />
+    <testcase name="Case_A17_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_177.json" />
+    <testcase name="Case_A17_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_178.json" />
+    <testcase name="Case_A17_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_179.json" />
+    <testcase name="Case_A17_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_180.json" />
+    <testcase name="Case_A18_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_181.json" />
+    <testcase name="Case_A18_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_182.json" />
+    <testcase name="Case_A18_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_183.json" />
+    <testcase name="Case_A18_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_184.json" />
+    <testcase name="Case_A18_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_185.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.phase: scalar not equal
+[ASSERT_NOT_EQUAL] actual.pending_prompt: scalar not equal</failure>
+    </testcase>
+    <testcase name="Case_A18_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_186.json" />
+    <testcase name="Case_A18_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_187.json" />
+    <testcase name="Case_A18_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_188.json" />
+    <testcase name="Case_A18_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_189.json" />
+    <testcase name="Case_A18_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_190.json" />
+    <testcase name="Case_A18_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_191.json" />
+    <testcase name="Case_A18_021" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_192.json" />
+    <testcase name="Case_A18_022" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_193.json" />
+    <testcase name="Case_A18_023" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_194.json" />
+    <testcase name="Case_A18_024" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_195.json" />
+    <testcase name="Case_A18_025" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_196.json" />
+    <testcase name="Case_A18_026" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_197.json" />
+    <testcase name="Case_A18_027" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_198.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.phase: scalar not equal
+[ASSERT_NOT_EQUAL] actual.pending_prompt: scalar not equal</failure>
+    </testcase>
+    <testcase name="Case_A18_028" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_199.json" />
+    <testcase name="Case_A18_029" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_200.json" />
+    <testcase name="Case_A18_030" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_201.json" />
+    <testcase name="Case_A18_031" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_202.json" />
+    <testcase name="Case_A18_039" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_203.json" />
+    <testcase name="Case_A18_040" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_204.json" />
+    <testcase name="Case_A18_041" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_205.json" />
+    <testcase name="Case_A18_042" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_206.json" />
+    <testcase name="Case_A18_043" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_207.json" />
+    <testcase name="Case_A19_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_208.json" />
+    <testcase name="Case_A19_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_209.json" />
+    <testcase name="Case_A19_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_210.json" />
+    <testcase name="Case_A19_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_211.json" />
+    <testcase name="Case_A19_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_212.json" />
+    <testcase name="Case_A19_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_213.json" />
+    <testcase name="Case_A19_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_214.json" />
+    <testcase name="Case_A19_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_215.json" />
+    <testcase name="Case_A19_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_216.json" />
+    <testcase name="Case_A19_013" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_217.json" />
+    <testcase name="Case_A19_014" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_218.json" />
+    <testcase name="Case_A19_015" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_219.json" />
+    <testcase name="Case_A20_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_220.json" />
+    <testcase name="Case_A20_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_221.json" />
+    <testcase name="Case_A20_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_222.json" />
+    <testcase name="Case_A20_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_223.json" />
+    <testcase name="Case_A20_017" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_224.json" />
+    <testcase name="Case_A21_001" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_225.json" />
+    <testcase name="Case_A21_002" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_226.json" />
+    <testcase name="Case_A21_003" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_227.json" />
+    <testcase name="Case_A21_004" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_228.json" />
+    <testcase name="Case_A21_005" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_229.json" />
+    <testcase name="Case_A21_006" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_230.json" />
+    <testcase name="Case_A21_007" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_231.json" />
+    <testcase name="Case_A21_008" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_232.json" />
+    <testcase name="Case_A21_009" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_233.json" />
+    <testcase name="Case_A21_010" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_234.json" />
+    <testcase name="Case_A21_011" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_235.json" />
+    <testcase name="Case_A21_012" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_236.json" />
+    <testcase name="Case_A21_013" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_237.json" />
+    <testcase name="Case_A21_014" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_238.json" />
+    <testcase name="Case_A21_015" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_239.json" />
+    <testcase name="Case_A21_016" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_240.json" />
+    <testcase name="Case_A21_017" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_241.json" />
+    <testcase name="Case_A21_018" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_242.json" />
+    <testcase name="Case_A21_019" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_243.json" />
+    <testcase name="Case_A21_020" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_244.json" />
+    <testcase name="Case_A21_021" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_245.json" />
+    <testcase name="Case_A21_022" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_246.json" />
+    <testcase name="Case_A21_023" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_247.json" />
+    <testcase name="Case_A21_024" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_248.json" />
+    <testcase name="Case_A21_025" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_249.json" />
+    <testcase name="Case_A21_026" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_250.json" />
+    <testcase name="Case_A21_027" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_251.json" />
+    <testcase name="Case_A21_028" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_252.json">
+      <failure message="FAIL">[ASSERT_NOT_EQUAL] actual.players[id=Q].fund: scalar not equal
+[ASSERT_NOT_EQUAL] actual.players[id=Q].status: scalar not equal
+[ASSERT_NOT_EQUAL] actual.players[id=Q].god_of_wealth_rounds: scalar not equal
+[ASSERT_NOT_EQUAL] actual.players[id=A].fund: scalar not equal
+[ASSERT_NOT_EQUAL] actual.fortune: field missing in actual</failure>
+    </testcase>
+    <testcase name="Case_A21_029" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_253.json" />
+    <testcase name="Case_A21_030" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_254.json" />
+    <testcase name="Case_A21_031" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_255.json">
+      <error message="ERROR">[INVALID_ACTION] : unknown command</error>
+    </testcase>
+    <testcase name="Case_A21_032" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_256.json" />
+    <testcase name="Case_A21_033" classname="C:\Users\48181\AppData\Local\Temp\monopoly_case_25840_257.json" />
+  </testsuite>
+</testsuites>

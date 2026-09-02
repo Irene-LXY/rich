@@ -1,0 +1,351 @@
+{
+  "schema_version": "conversion-report-2.0-positive-only",
+  "source_file": "第一组_大富翁统一测试用例_迭代三_精简修正版.xlsx",
+  "policy_change": "活动资产仅保留正向且非冗余用例；按PDF将Quit统一为强制结束整局游戏。",
+  "summary": {
+    "active_positive_cases": 288,
+    "removed_negative_cases": 87,
+    "state_cases": 258,
+    "interactive_cases": 30,
+    "expected_error_cases": 0,
+    "adapted_cases": 20,
+    "unresolved_positive_cases": 0,
+    "park_position_corrections_in_excel": 9,
+    "semantic_corrections_in_excel": 69,
+    "startup_flow_corrections_in_excel": 49,
+    "fixed_role_mismatches": 15,
+    "fixed_deterministic_roll_cases": 20,
+    "fixed_map_or_movement_cases": 9,
+    "interactive_launch_semantics_implemented": 4,
+    "interactive_per_instance_cases": 3,
+    "original_excel_cases": 393,
+    "final_excel_cases": 288,
+    "merged_redundant_cases": 18,
+    "exact_duplicate_groups_after_cleanup": 0,
+    "a20_cases_before": 16,
+    "a20_cases_after": 6
+  },
+  "removed_case_ids": [
+    "Case_A4_007",
+    "Case_A4_023",
+    "Case_A8_001",
+    "Case_A8_002",
+    "Case_A9_006",
+    "Case_A9_007",
+    "Case_A9_013",
+    "Case_A11_022",
+    "Case_A11_023",
+    "Case_A11_024",
+    "Case_A11_025",
+    "Case_A11_026",
+    "Case_A11_027",
+    "Case_A11_028",
+    "Case_A12_002",
+    "Case_A12_008",
+    "Case_A15_004",
+    "Case_A15_005",
+    "Case_A15_006",
+    "Case_A15_007",
+    "Case_A17_011",
+    "Case_A18_012",
+    "Case_A18_013",
+    "Case_A18_014",
+    "Case_A18_015",
+    "Case_A18_016",
+    "Case_A18_017",
+    "Case_A18_018",
+    "Case_A18_019",
+    "Case_A18_020",
+    "Case_A18_032",
+    "Case_A18_033",
+    "Case_A18_034",
+    "Case_A18_035",
+    "Case_A18_036",
+    "Case_A18_037",
+    "Case_A18_038",
+    "Case_A20_007",
+    "Case_A20_008",
+    "Case_A20_010",
+    "Case_A20_011",
+    "Case_A20_013",
+    "Case_A20_014",
+    "Case_A20_022",
+    "Case_A20_023",
+    "Case_A20_024",
+    "Case_A20_025",
+    "Case_A20_026",
+    "Case_A20_028",
+    "Case_A20_031",
+    "Case_A19_007",
+    "Case_A19_008",
+    "Case_A19_012",
+    "Case_A1_004",
+    "Case_A1_005",
+    "Case_A1_006",
+    "Case_A1_007",
+    "Case_A1_008",
+    "Case_A2_004",
+    "Case_A2_005",
+    "Case_A2_006",
+    "Case_A2_007",
+    "Case_A2_008",
+    "Case_A2_009",
+    "Case_A2_010",
+    "Case_A2_016",
+    "Case_A2_017",
+    "Case_A2_018",
+    "Case_A2_019",
+    "Case_A2_020",
+    "Case_A2_021",
+    "Case_A2_022",
+    "Case_A2_023",
+    "Case_A2_025",
+    "Case_A3_007",
+    "Case_A3_008",
+    "Case_A3_009",
+    "Case_A3_010",
+    "Case_A3_011",
+    "Case_A3_012",
+    "Case_A3_013",
+    "Case_A3_014",
+    "Case_A3_015",
+    "Case_A3_020",
+    "Case_A6_004",
+    "Case_A20_012",
+    "Case_A20_027"
+  ],
+  "adaptations": [
+    {
+      "case_id": "Case_A1_009",
+      "note": "运行器按launch.instances并发启动，并通过launch.instance_inputs及expected.process.instances分别输入、断言两个进程。"
+    },
+    {
+      "case_id": "Case_A1_010",
+      "note": "运行器并发启动两个进程；进程1退出，进程2仍可独立执行Help后正常退出。"
+    },
+    {
+      "case_id": "Case_A1_011",
+      "note": "运行器将该用例重复5次。"
+    },
+    {
+      "case_id": "Case_A1_012",
+      "note": "运行器分别输入10000+12与50000+13，并按进程核对资金和共同首角色钱夫人。"
+    },
+    {
+      "case_id": "Case_A4_001",
+      "note": "将“原医院格”落实为迭代三公园位置49。"
+    },
+    {
+      "case_id": "Case_A4_002",
+      "note": "将“原监狱格”落实为迭代三公园位置63。"
+    },
+    {
+      "case_id": "Case_A14_012",
+      "note": "按2.0定义选择可复现延迟7，证明失效后1～10回合内再次生成。"
+    },
+    {
+      "case_id": "Case_A18_009",
+      "note": "按2.0规则对大于70的步数取余后选择与案例本意一致的落点。"
+    },
+    {
+      "case_id": "Case_A18_010",
+      "note": "按2.0规则对大于70的步数取余后选择与案例本意一致的落点。"
+    },
+    {
+      "case_id": "Case_A18_027",
+      "note": "按2.0规则对大于70的步数取余后选择与案例本意一致的落点。"
+    },
+    {
+      "case_id": "Case_A18_028",
+      "note": "按2.0规则对大于70的步数取余后选择与案例本意一致的落点。"
+    },
+    {
+      "case_id": "Case_A18_029",
+      "note": "按2.0规则对大于70的步数取余后选择与案例本意一致的落点。"
+    },
+    {
+      "case_id": "Case_A18_041",
+      "note": "按2.0规则对大于70的步数取余后选择与案例本意一致的落点。"
+    },
+    {
+      "case_id": "Case_A18_042",
+      "note": "按2.0规则对大于70的步数取余后选择与案例本意一致的落点。"
+    },
+    {
+      "case_id": "Case_A18_043",
+      "note": "按2.0规则对大于70的步数取余后选择与案例本意一致的落点。"
+    },
+    {
+      "case_id": "Case_A21_010",
+      "note": "路径经过合法公园14。"
+    },
+    {
+      "case_id": "Case_A21_029",
+      "note": "礼品屋领取过程由A15覆盖；本例预置已获得的财神状态，专测后续免租与不破产。"
+    },
+    {
+      "case_id": "Case_A21_017",
+      "note": "按Excel“剩余3人（4人局）”补齐第四名玩家J。"
+    },
+    {
+      "case_id": "Case_A21_031",
+      "note": "补入财神剩余1轮及四次ADVANCE_TURN，避免与A21_001退化为同一用例。"
+    },
+    {
+      "case_id": "Case_A20_001",
+      "note": "按PDF第4页“Quit强制结束游戏”修正旧Excel的“单个玩家退出后继续”误解，并合并普通回合重复案例。"
+    },
+    {
+      "case_id": "Case_A20_002",
+      "note": "保留独立BUY提示处理器覆盖；按PDF修正为结束整局。"
+    },
+    {
+      "case_id": "Case_A20_003",
+      "note": "保留财神特殊状态覆盖并合并A20_016/020/030。"
+    },
+    {
+      "case_id": "Case_A20_004",
+      "note": "保留独立礼品屋提示处理器覆盖并合并A20_018。"
+    },
+    {
+      "case_id": "Case_A20_005",
+      "note": "保留独立UPGRADE提示处理器覆盖。"
+    },
+    {
+      "case_id": "Case_A20_017",
+      "note": "保留独立道具屋提示处理器覆盖；按PDF修正为结束整局。"
+    }
+  ],
+  "corrections": [
+    {
+      "scope": "Case_A8_003..Case_A8_022",
+      "note": "显式固定骰子值，并统一Excel与JSON的角色、起点、落点、地图类型和交互阶段。"
+    },
+    {
+      "scope": "Case_A8_006/008/009/012/013/015/016/017/022",
+      "note": "按70格正式地图修正特殊格或单骰不可达问题，保留原测试场景。"
+    },
+    {
+      "scope": "Case_A1_009..Case_A1_012",
+      "note": "交互运行器按instances并发启动、按repetitions重复执行；A1_009/A1_010/A1_012进一步支持按实例输入与按实例输出断言。"
+    },
+    {
+      "scope": "Case_A18_005/006/009/011/022/027/028/039/042/043",
+      "note": "pending_prompt由对象统一为2.0字符串枚举；位置继续由players.position独立断言。"
+    },
+    {
+      "scope": "全部33条INTERACTIVE派生用例",
+      "note": "补充timeout_ms与exit_code，使挂起和异常退出可被运行器稳定识别。"
+    },
+    {
+      "scope": "Excel A1/A2/A3及全部33条INTERACTIVE活动用例",
+      "note": "按客户确认采用PDF开局流程：先设置初始资金，再一次输入2至4位不重复角色编号组合；组合长度决定人数和顺序，删除独立人数步骤、逐角色输入和二次确认。"
+    },
+    {
+      "scope": "A20 Quit强制退出",
+      "note": "以PDF第4页为权威，将Quit统一为强制结束整局；保留正常命令、财神状态和BUY/UPGRADE/TOOL_SHOP/GIFT_SHOP四类提示处理器，共6条。"
+    },
+    {
+      "scope": "Case_A21_031",
+      "note": "从财神剩余1轮开始，经过完整回合衰减至0后再触发收费破产，不再与A21_001重复。"
+    },
+    {
+      "scope": "活动用例去重",
+      "note": "合并18条重复执行并保留merged_into追踪；清理后活动主档无完全相同的执行签名。"
+    }
+  ],
+  "merged_case_ids": [
+    "Case_A1_002",
+    "Case_A1_003",
+    "Case_A2_024",
+    "Case_A2_026",
+    "Case_A4_020",
+    "Case_A4_025",
+    "Case_A13_011",
+    "Case_A15_012",
+    "Case_A20_006",
+    "Case_A20_009",
+    "Case_A20_015",
+    "Case_A20_016",
+    "Case_A20_018",
+    "Case_A20_019",
+    "Case_A20_020",
+    "Case_A20_021",
+    "Case_A20_029",
+    "Case_A20_030"
+  ],
+  "merged_into": [
+    {
+      "case_id": "Case_A1_002",
+      "retained_case_id": "Case_A1_001"
+    },
+    {
+      "case_id": "Case_A1_003",
+      "retained_case_id": "Case_A1_001"
+    },
+    {
+      "case_id": "Case_A2_024",
+      "retained_case_id": "Case_A2_003"
+    },
+    {
+      "case_id": "Case_A2_026",
+      "retained_case_id": "Case_A2_003"
+    },
+    {
+      "case_id": "Case_A4_020",
+      "retained_case_id": "Case_A13_002"
+    },
+    {
+      "case_id": "Case_A4_025",
+      "retained_case_id": "Case_A20_001"
+    },
+    {
+      "case_id": "Case_A13_011",
+      "retained_case_id": "Case_A18_023"
+    },
+    {
+      "case_id": "Case_A15_012",
+      "retained_case_id": "Case_A18_023"
+    },
+    {
+      "case_id": "Case_A20_006",
+      "retained_case_id": "Case_A20_001"
+    },
+    {
+      "case_id": "Case_A20_009",
+      "retained_case_id": "Case_A8_003"
+    },
+    {
+      "case_id": "Case_A20_015",
+      "retained_case_id": "Case_A20_001"
+    },
+    {
+      "case_id": "Case_A20_016",
+      "retained_case_id": "Case_A20_003"
+    },
+    {
+      "case_id": "Case_A20_018",
+      "retained_case_id": "Case_A20_004"
+    },
+    {
+      "case_id": "Case_A20_019",
+      "retained_case_id": "Case_A20_001"
+    },
+    {
+      "case_id": "Case_A20_020",
+      "retained_case_id": "Case_A20_003"
+    },
+    {
+      "case_id": "Case_A20_021",
+      "retained_case_id": "Case_A20_001"
+    },
+    {
+      "case_id": "Case_A20_029",
+      "retained_case_id": "Case_A20_001"
+    },
+    {
+      "case_id": "Case_A20_030",
+      "retained_case_id": "Case_A20_003"
+    }
+  ]
+}
