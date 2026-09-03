@@ -4,7 +4,7 @@
 
 ## 一键使用
 
-- 双击工程根目录的 `..\build.bat`：统一编译游戏程序和两个测试运行器，并校验全部 v2.0 测试资产。
+- 双击工程根目录的 `..\build.bat`：先删除 `rich\build-local` 与 `automation\build` 中的已有编译产物，再完整编译游戏程序和两个测试运行器，并校验全部 v2.0 测试资产。
 - 双击 `run_tests.bat`：先做增量编译和全部资产校验，然后依次运行 258 条 STATE 正向用例和 30 条 INTERACTIVE 正向用例；显示结果后等待按键，不会自动关闭窗口。
 - 命令行/CI 使用 `run_tests.bat -NoPause`；288 条全部通过时返回 `0`，任一 FAIL/ERROR 时返回 `1`。
 - 自动找不到程序时，可用 `program.txt` 指定 `monopoly_test.exe`，用 `interactive_program.txt` 指定 `monopoly.exe` 或 `rich.exe`。
@@ -15,11 +15,11 @@
 
 ```text
 automation/
-├── build.bat
 ├── run_tests.bat
 ├── c/run_tests.c
 ├── interactive/run_interactive_tests.c
 ├── scripts/validate_test_assets.ps1
+├── scripts/clean_build_artifacts.ps1
 ├── spec/
 │   ├── game_test_spec_v2.md
 │   └── map.json
@@ -60,7 +60,7 @@ automation/
 ## 单独运行
 
 ```powershell
-.\build.bat -NoPause
+..\build.bat
 .\build\run_tests.exe --program <monopoly_test.exe> --cases .\testcases\FirstGroup_Iteration3_State_v2.json --map .\spec\map.json --out .\results_state_v2.json
 .\build\run_interactive_tests.exe --program <monopoly.exe> --cases .\interactive\cases_v2 --out .\results_interactive_v2.json --quiet
 ```

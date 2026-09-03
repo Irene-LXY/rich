@@ -23,7 +23,8 @@
     "merged_redundant_cases": 18,
     "exact_duplicate_groups_after_cleanup": 0,
     "a20_cases_before": 16,
-    "a20_cases_after": 6
+    "a20_cases_after": 6,
+    "post_regression_test_asset_corrections": 6
   },
   "removed_case_ids": [
     "Case_A4_007",
@@ -133,7 +134,7 @@
     },
     {
       "case_id": "Case_A4_001",
-      "note": "将“原医院格”落实为迭代三公园位置49。"
+      "note": "将“原医院格”落实为迭代三公园位置49；STEP落至无主地产50后补充ANSWER N，完成提示后再断言切换回合。"
     },
     {
       "case_id": "Case_A4_002",
@@ -214,6 +215,10 @@
     {
       "case_id": "Case_A20_017",
       "note": "保留独立道具屋提示处理器覆盖；按PDF修正为结束整局。"
+    },
+    {
+      "case_id": "Case_A14_009",
+      "note": "Q首次移动落至无主地产6后补充ANSWER N解除BUY提示，再由A执行后续移动；不改变“首个经过者获得财神”的业务期望。"
     }
   ],
   "corrections": [
@@ -252,6 +257,10 @@
     {
       "scope": "活动用例去重",
       "note": "合并18条重复执行并保留merged_into追踪；清理后活动主档无完全相同的执行签名。"
+    },
+    {
+      "scope": "Case_A4_001、Case_A14_009、Case_A10_014/015/017/018",
+      "note": "回归复核后修正两条落点提示动作序列，并依据原Excel恢复四条曾被压平的收租资金期望；未修改业务规则。"
     }
   ],
   "merged_case_ids": [

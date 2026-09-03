@@ -222,10 +222,10 @@
       "case_id": "Case_A4_001",
       "feature": "A4 回合控制与落点处理",
       "preset_text": "1. 场景：原医院格改为公园后正常行动\n2. 玩家资产/状态：当前玩家Q位于由医院改成的公园P\n3. Q状态正常\n4. 下一玩家A",
-      "input_text": "进入Q的回合",
+      "input_text": "1. Q执行STEP 1\n2. 出现购买提示后输入N",
       "expected_text": "1. Q可正常输入掷骰前命令和Roll\n2. 不跳过Q的回合\n3. Q的状态、资金和位置不因公园改变\n4. 完成行动后按正常顺序切换至A回合",
       "conversion_status": "ACTIVE_V2_STATE",
-      "adaptation_note": "将“原医院格”落实为迭代三公园位置49。",
+      "adaptation_note": "将“原医院格”落实为迭代三公园位置49；STEP落至无主地产50后补充ANSWER N，完成提示后再断言切换回合。",
       "previous_conversion_issue": "案例仍依赖迭代三已删除的炸弹、医院、监狱、轮空或魔法屋功能"
     },
     {
@@ -1034,7 +1034,8 @@
       "input_text": "触发停留：Roll停留",
       "expected_text": "1. A支付过路费1000元，资金变为4000\n2. S资金增加1000元\n3. 房产归属不变\n4. 回合正常切换",
       "conversion_status": "ACTIVE_V2_STATE",
-      "previous_conversion_issue": "同编号旧 JSON 依赖已删除功能，且表格新语义不足以无歧义重建完整状态"
+      "previous_conversion_issue": "同编号旧 JSON 依赖已删除功能，且表格新语义不足以无歧义重建完整状态",
+      "adaptation_note": "依据原Excel收租本意修正此前被压平的资金期望，不改变业务规则。"
     },
     {
       "case_id": "Case_A10_015",
@@ -1043,7 +1044,8 @@
       "input_text": "触发停留：Roll停留",
       "expected_text": "1. S支付过路费300元，资金变为4700\n2. J资金增加300元\n3. 房产归属不变\n4. 回合正常切换",
       "conversion_status": "ACTIVE_V2_STATE",
-      "previous_conversion_issue": "同编号旧 JSON 依赖已删除功能，且表格新语义不足以无歧义重建完整状态"
+      "previous_conversion_issue": "同编号旧 JSON 依赖已删除功能，且表格新语义不足以无歧义重建完整状态",
+      "adaptation_note": "依据原Excel收租本意修正此前被压平的资金期望，不改变业务规则。"
     },
     {
       "case_id": "Case_A10_016",
@@ -1061,7 +1063,8 @@
       "input_text": "触发停留：Roll停留",
       "expected_text": "1. Q支付过路费750元，资金变为4250\n2. A资金增加750元\n3. 房产归属不变\n4. 回合正常切换",
       "conversion_status": "ACTIVE_V2_STATE",
-      "previous_conversion_issue": "同编号旧 JSON 依赖已删除功能，且表格新语义不足以无歧义重建完整状态"
+      "previous_conversion_issue": "同编号旧 JSON 依赖已删除功能，且表格新语义不足以无歧义重建完整状态",
+      "adaptation_note": "依据原Excel收租本意修正此前被压平的资金期望，不改变业务规则。"
     },
     {
       "case_id": "Case_A10_018",
@@ -1070,7 +1073,8 @@
       "input_text": "触发停留：Roll停留",
       "expected_text": "1. J支付过路费600元，资金变为4400\n2. Q资金增加600元\n3. 房产归属不变\n4. 回合正常切换",
       "conversion_status": "ACTIVE_V2_STATE",
-      "previous_conversion_issue": "同编号旧 JSON 依赖已删除功能，且表格新语义不足以无歧义重建完整状态"
+      "previous_conversion_issue": "同编号旧 JSON 依赖已删除功能，且表格新语义不足以无歧义重建完整状态",
+      "adaptation_note": "依据原Excel收租本意修正此前被压平的资金期望，不改变业务规则。"
     },
     {
       "case_id": "Case_A10_019",
@@ -1531,9 +1535,10 @@
       "case_id": "Case_A14_009",
       "feature": "A14 财神随机出现与获取",
       "preset_text": "1. 场景：两名玩家先后经过F\n2. Q先经过，A随后经过\n3. 两人此前均无财神状态",
-      "input_text": "Q与A依次移动经过F所在格",
+      "input_text": "1. Q执行STEP 2\n2. 购买提示输入N\n3. A执行STEP 3",
       "expected_text": "1. Q作为第一个经过者获得财神\n2. F立即从地图消失并恢复底层符号\n3. A经过该格不再获得财神",
-      "conversion_status": "ACTIVE_V2_STATE"
+      "conversion_status": "ACTIVE_V2_STATE",
+      "adaptation_note": "Q首次移动落至无主地产6后补充ANSWER N解除BUY提示，再由A执行后续移动；不改变“首个经过者获得财神”的业务期望。"
     },
     {
       "case_id": "Case_A14_010",
