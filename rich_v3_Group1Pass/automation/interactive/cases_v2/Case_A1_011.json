@@ -1,0 +1,16 @@
+{
+  "name": "Case_A1_011 A1 游戏启动",
+  "input": [
+    "10000",
+    "12",
+    "quit"
+  ],
+  "expect": [
+    "大富翁启动成功",
+    "轮到玩家"
+  ],
+  "forbid": [],
+  "repetitions": 5,
+  "timeout_ms": 5000,
+  "exit_code": 0
+}
