@@ -10,6 +10,7 @@
  */
 
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -398,8 +399,6 @@ static int find_symbol(const char *const syms[4], int n, const char *s) {
 
 static int parse_status(const char *s) {
     if (s == NULL || strcmp(s, "NORMAL") == 0) return AUTOMATION_STATUS_NORMAL;
-    if (strcmp(s, "HOSPITAL") == 0) return AUTOMATION_STATUS_HOSPITAL;
-    if (strcmp(s, "JAIL") == 0) return AUTOMATION_STATUS_JAIL;
     if (strcmp(s, "BANKRUPT") == 0) return AUTOMATION_STATUS_BANKRUPT;
     return -1;
 }
@@ -407,8 +406,34 @@ static int parse_status(const char *s) {
 static int parse_item_type(const char *s) {
     if (s == NULL) return -1;
     if (strcmp(s, "BLOCK") == 0) return AUTOMATION_ITEM_BLOCK;
-    if (strcmp(s, "BOMB") == 0) return AUTOMATION_ITEM_BOMB;
     return -1;
+}
+
+static uint32_t xorshift32_next(uint32_t *state) {
+    uint32_t x = *state;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    *state = x;
+    return x;
+}
+
+static int read_prng_seed(const JValue *seeds, const char *name,
+                          uint32_t *seed, int *configured,
+                          char *err, size_t errsz) {
+    const JValue *value = jv_get(seeds, name);
+    if (value == NULL) {
+        *configured = 0;
+        return 0;
+    }
+    if (value->type != J_INT || value->i < 1LL ||
+        (unsigned long long)value->i > 4294967295ULL) {
+        seterr(err, errsz, "invalid PRNG seed");
+        return -1;
+    }
+    *seed = (uint32_t)value->i;
+    *configured = 1;
+    return 0;
 }
 
 static int build_preset(const JValue *case_obj, AutomationPreset *p, char *err, size_t errsz) {
@@ -462,14 +487,19 @@ static int build_preset(const JValue *case_obj, AutomationPreset *p, char *err, 
             p->players[idx].position = (int)jv_int(jv_get(it, "position"), 0);
             p->players[idx].god_of_wealth_rounds =
                 (int)jv_int(jv_get(it, "god_of_wealth_rounds"), 0);
-            p->players[idx].remaining_rounds =
-                (int)jv_int(jv_get(it, "remaining_rounds"), 0);
+            if (jv_get(it, "remaining_rounds") != NULL) {
+                seterr(err, errsz, "remaining_rounds was removed in schema 2.0");
+                return -1;
+            }
             st = parse_status(jv_str(jv_get(it, "status")));
             if (st < 0) { seterr(err, errsz, "invalid status"); return -1; }
             p->players[idx].status = (AutomationPlayerStatus)st;
             items = jv_get(it, "items");
             p->players[idx].block = (int)jv_int(jv_get(items, "BLOCK"), 0);
-            p->players[idx].bomb = (int)jv_int(jv_get(items, "BOMB"), 0);
+            if (jv_get(items, "BOMB") != NULL) {
+                seterr(err, errsz, "BOMB was removed in iteration 3");
+                return -1;
+            }
             p->players[idx].robot = (int)jv_int(jv_get(items, "ROBOT"), 0);
         }
     }
@@ -542,23 +572,62 @@ static int build_preset(const JValue *case_obj, AutomationPreset *p, char *err, 
 
     random_control = jv_get(preset, "random_control");
     if (random_control != NULL && random_control->type == J_OBJ) {
-        const JValue *streams = jv_get(random_control, "streams");
-        const JValue *positions = jv_get(streams, "FORTUNE_POSITION");
-        const JValue *delays = jv_get(streams, "FORTUNE_RESPAWN_DELAY");
-        size_t k;
-        if (positions != NULL && positions->type == J_ARR) {
-            for (k = 0; k < positions->count &&
-                        p->fortune_position_count < AUTOMATION_MAX_RANDOM_VALUES; ++k) {
-                p->fortune_positions[p->fortune_position_count++] =
-                    (int)jv_int(positions->items[k], -1);
+        const char *mode = jv_str(jv_get(random_control, "mode"));
+        if (mode == NULL || strcmp(mode, "SEQUENCE") == 0) {
+            const JValue *streams = jv_get(random_control, "streams");
+            const JValue *positions = jv_get(streams, "FORTUNE_POSITION");
+            const JValue *delays = jv_get(streams, "FORTUNE_RESPAWN_DELAY");
+            size_t k;
+            if (positions != NULL && positions->type == J_ARR) {
+                for (k = 0; k < positions->count &&
+                            p->fortune_position_count < AUTOMATION_MAX_RANDOM_VALUES; ++k) {
+                    p->fortune_positions[p->fortune_position_count++] =
+                        (int)jv_int(positions->items[k], -1);
+                }
             }
-        }
-        if (delays != NULL && delays->type == J_ARR) {
-            for (k = 0; k < delays->count &&
-                        p->fortune_respawn_delay_count < AUTOMATION_MAX_RANDOM_VALUES; ++k) {
-                p->fortune_respawn_delays[p->fortune_respawn_delay_count++] =
-                    (int)jv_int(delays->items[k], -1);
+            if (delays != NULL && delays->type == J_ARR) {
+                for (k = 0; k < delays->count &&
+                            p->fortune_respawn_delay_count < AUTOMATION_MAX_RANDOM_VALUES; ++k) {
+                    p->fortune_respawn_delays[p->fortune_respawn_delay_count++] =
+                        (int)jv_int(delays->items[k], -1);
+                }
             }
+        } else if (strcmp(mode, "PRNG") == 0) {
+            const char *algorithm = jv_str(jv_get(random_control, "algorithm"));
+            const JValue *seeds = jv_get(random_control, "stream_seeds");
+            uint32_t seed;
+            int configured;
+            int k;
+            if (algorithm == NULL || strcmp(algorithm, "XORSHIFT32") != 0 ||
+                seeds == NULL || seeds->type != J_OBJ) {
+                seterr(err, errsz, "invalid PRNG configuration");
+                return -1;
+            }
+            if (read_prng_seed(seeds, "DICE", &seed, &configured,
+                               err, errsz) != 0) return -1;
+            if (configured) {
+                p->dice_prng_configured = 1;
+                p->dice_prng_seed = seed;
+            }
+            if (read_prng_seed(seeds, "FORTUNE_POSITION", &seed, &configured,
+                               err, errsz) != 0) return -1;
+            if (configured) {
+                for (k = 0; k < AUTOMATION_MAX_RANDOM_VALUES; ++k) {
+                    p->fortune_positions[p->fortune_position_count++] =
+                        (int)(xorshift32_next(&seed) % RICH_MAP_SIZE);
+                }
+            }
+            if (read_prng_seed(seeds, "FORTUNE_RESPAWN_DELAY", &seed,
+                               &configured, err, errsz) != 0) return -1;
+            if (configured) {
+                for (k = 0; k < AUTOMATION_MAX_RANDOM_VALUES; ++k) {
+                    p->fortune_respawn_delays[p->fortune_respawn_delay_count++] =
+                        1 + (int)(xorshift32_next(&seed) % 10U);
+                }
+            }
+        } else {
+            seterr(err, errsz, "invalid random_control mode");
+            return -1;
         }
     }
 
@@ -625,10 +694,6 @@ static int execute_actions(GameRuntime *rt, const JValue *actions,
             int off = (int)jv_int(jv_get(params, "offset"), 999);
             if (off < -10 || off > 10) { seterr(err, errsz, "offset out of range"); return -1; }
             (void)runtime_place_tool(rt, 1, off, msg, sizeof(msg));
-        } else if (cmd_equals_ignore_case(cmd, "BOMB")) {
-            int off = (int)jv_int(jv_get(params, "offset"), 999);
-            if (off < -10 || off > 10) { seterr(err, errsz, "offset out of range"); return -1; }
-            (void)runtime_place_tool(rt, 3, off, msg, sizeof(msg));
         } else if (cmd_equals_ignore_case(cmd, "ROBOT")) {
             (void)runtime_use_robot(rt, msg, sizeof(msg));
         } else if (cmd_equals_ignore_case(cmd, "QUERY")) {
@@ -725,21 +790,24 @@ static void emit_actual(const AutomationSnapshot *snap) {
 
     fprintf(f, "  \"game_status\": \"%s\",\n", snap->game_status ? "FINISHED" : "RUNNING");
 
-    fprintf(f, "  \"turn_number\": %llu,\n",
-            (unsigned long long)snap->turn_number);
+    fprintf(f, "  \"turn_number\": %" PRIu64 ",\n",
+            (uint64_t)snap->turn_number);
 
     fprintf(f, "  \"fortune\": {");
     if (snap->fortune_position == FORTUNE_NO_POSITION) {
-        fprintf(f, "\"position\":null,\"remaining_map_turns\":0,");
+        fprintf(f, "\"position\":null,\"symbol\":null,"
+                   "\"spawned_after_turn\":null,\"remaining_map_turns\":0,");
     } else {
         fprintf(f, "\"position\":%d,\"symbol\":\"F\"," 
-                   "\"remaining_map_turns\":%d,",
+                   "\"spawned_after_turn\":%" PRIu64
+                   ",\"remaining_map_turns\":%d,",
                 snap->fortune_position,
+                (uint64_t)snap->fortune_spawned_after_turn,
                 snap->fortune_remaining_map_turns);
     }
     if (snap->fortune_next_spawn_after_turn > 0U) {
-        fprintf(f, "\"next_spawn_after_turn\":%llu},\n",
-                (unsigned long long)snap->fortune_next_spawn_after_turn);
+        fprintf(f, "\"next_spawn_after_turn\":%" PRIu64 "},\n",
+                (uint64_t)snap->fortune_next_spawn_after_turn);
     } else {
         fprintf(f, "\"next_spawn_after_turn\":null},\n");
     }
@@ -758,12 +826,12 @@ static void emit_actual(const AutomationSnapshot *snap) {
         if (i) fprintf(f, ",");
         fprintf(f,
             "{\"id\":\"%c\",\"fund\":%d,\"credit\":%d,\"position\":%d,"
-            "\"status\":\"%s\",\"remaining_rounds\":%d,"
-            "\"items\":{\"BLOCK\":%d,\"BOMB\":%d,\"ROBOT\":%d},"
+            "\"status\":\"%s\","
+            "\"items\":{\"BLOCK\":%d,\"ROBOT\":%d},"
             "\"god_of_wealth_rounds\":%d}",
             p->symbol, p->fund, p->credit, p->position,
-            status_name(p->status), p->remaining_rounds,
-            p->block, p->bomb, p->robot, p->god_of_wealth_rounds);
+            status_name(p->status), p->block, p->robot,
+            p->god_of_wealth_rounds);
     }
     fprintf(f, "],\n");
 
@@ -889,6 +957,23 @@ int main(int argc, char **argv) {
         size_t i;
         for (i = 0; i < dicej->count && dice_count < 256; ++i) {
             dice[dice_count++] = (int)jv_int(dicej->items[i], 0);
+        }
+    }
+    if (dice_count == 0U) {
+        const JValue *random_control = jv_get(jv_get(case_obj, "preset"),
+                                              "random_control");
+        const JValue *streams = jv_get(random_control, "streams");
+        const JValue *stream_dice = jv_get(streams, "DICE");
+        if (stream_dice != NULL && stream_dice->type == J_ARR) {
+            size_t i;
+            for (i = 0; i < stream_dice->count && dice_count < 256U; ++i) {
+                dice[dice_count++] = (int)jv_int(stream_dice->items[i], 0);
+            }
+        } else if (preset.dice_prng_configured) {
+            uint32_t seed = preset.dice_prng_seed;
+            while (dice_count < 256U) {
+                dice[dice_count++] = 1 + (int)(xorshift32_next(&seed) % 6U);
+            }
         }
     }
     actions = jv_get(case_obj, "actions");

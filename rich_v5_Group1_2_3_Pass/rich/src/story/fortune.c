@@ -67,7 +67,8 @@ int fortune_collect(FortuneState *state,
     }
     state->map_position = FORTUNE_NO_POSITION;
     state->spawned_turn = 0U;
-    state->next_spawn_turn = turn_number + FORTUNE_RESPAWN_DELAY_TURNS;
+    /* 领取发生在当前回合内；“再过 10 个完整回合”后才到新的生成点。 */
+    state->next_spawn_turn = turn_number + FORTUNE_RESPAWN_DELAY_TURNS + 1U;
     return fortune_grant(state, player_index);
 }
 

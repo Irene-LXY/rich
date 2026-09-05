@@ -198,7 +198,8 @@ static int tool_move_handler(PlayerToken *player, const MapCell *cell,
                 &rt->fortune, cell->index, (size_t)move->player_index,
                 turn.turn_number)) {
             mutable_cell->has_fortune = 0;
-            apply_test_fortune_respawn_delay(rt, turn.turn_number);
+            /* 领取在回合内发生，延迟从本回合完成后起算。 */
+            apply_test_fortune_respawn_delay(rt, turn.turn_number + 1U);
             notice_append(rt,
                 "路过位置 %d，获得财神；本回合立即生效，连续 5 回合免付过路费。\n",
                 cell->index);
@@ -577,6 +578,9 @@ int runtime_step(GameRuntime *rt, int steps, char *message, size_t message_size)
 {
     if (steps < 0) {
         return 1;
+    }
+    if (steps > RICH_MAP_SIZE) {
+        steps %= RICH_MAP_SIZE;
     }
     return runtime_move(rt, steps, message, message_size);
 }
@@ -1069,8 +1073,12 @@ GameRuntime *runtime_load_preset(const AutomationPreset *preset)
         rt->tools[i][2] = (unsigned int)p->robot;
 
         if (p->status == AUTOMATION_STATUS_BANKRUPT) {
-            (void)a4_turn_manager_mark_player_out(&rt->turn_manager,
-                                                  (A4PlayerId)(i + 1));
+            /* begin_at 之前 mark_player_out 会因回合管理器未启动而失败。
+             * Preset 装载期直接恢复不参与状态，避免破产玩家再次获得回合。 */
+            rt->turn_manager.players[i].participating = false;
+            rt->turn_manager.players[i].skip_reason = A4_SKIP_NONE;
+            rt->turn_manager.players[i].skip_turns_remaining = 0U;
+            rt->players[i].active = 0;
         }
     }
 
@@ -1112,6 +1120,12 @@ GameRuntime *runtime_load_preset(const AutomationPreset *preset)
             (preset->current_user_index >= 0 &&
              preset->current_user_index < preset->player_count)
                 ? (size_t)preset->current_user_index : 0U;
+        size_t checked = 0U;
+        while (checked < (size_t)preset->player_count &&
+               !rt->turn_manager.players[start_index].participating) {
+            start_index = (start_index + 1U) % (size_t)preset->player_count;
+            ++checked;
+        }
         (void)a4_turn_manager_begin_at(&rt->turn_manager, start_index);
     }
     rt->turn_manager.turn_number = preset->turn_number > 0U
@@ -1212,6 +1226,8 @@ void runtime_snapshot(const GameRuntime *rt, AutomationSnapshot *snapshot)
     if (snapshot->fortune_position != FORTUNE_NO_POSITION &&
         rt->fortune.spawned_turn + FORTUNE_MAP_LIFETIME_TURNS >
             turn.turn_number) {
+        snapshot->fortune_spawned_after_turn =
+            rt->fortune.spawned_turn > 0U ? rt->fortune.spawned_turn - 1U : 0U;
         snapshot->fortune_remaining_map_turns = (int)(
             rt->fortune.spawned_turn + FORTUNE_MAP_LIFETIME_TURNS -
             turn.turn_number);

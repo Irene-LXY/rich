@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <ctype.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -552,7 +553,7 @@ static void json_write(FILE *f, const JValue *v) {
     switch (v->type) {
         case J_NULL: fputs("null", f); break;
         case J_BOOL: fputs(v->b ? "true" : "false", f); break;
-        case J_INT: fprintf(f, "%lld", v->i); break;
+        case J_INT: fprintf(f, "%" PRId64, (int64_t)v->i); break;
         case J_DOUBLE: fprintf(f, "%.17g", v->d); break;
         case J_STRING: json_write_string(f, v->s); break;
         case J_ARRAY:
@@ -787,7 +788,8 @@ static void match_object(const JValue *exp, const JValue *act, const char *path,
                     }
                     if (found) {
                         char p[PATHBUF];
-                        snprintf(p, sizeof(p), "%s.%s[position=%lld]", path, arrname, pos->i);
+                        snprintf(p, sizeof(p), "%s.%s[position=%" PRId64 "]",
+                                 path, arrname, (int64_t)pos->i);
                         append_error(errors, "ASSERT_NOT_ABSENT", p, NULL, pos, "item should not exist");
                     }
                 }
@@ -825,7 +827,8 @@ static void match_object(const JValue *exp, const JValue *act, const char *path,
                     if (exp_pk && exp_pk->type == J_STRING)
                         snprintf(p, sizeof(p), "%s.%s[%s=%s]", path, key, pk, exp_pk->s);
                     else if (exp_pk && exp_pk->type == J_INT)
-                        snprintf(p, sizeof(p), "%s.%s[%s=%lld]", path, key, pk, exp_pk->i);
+                        snprintf(p, sizeof(p), "%s.%s[%s=%" PRId64 "]",
+                                 path, key, pk, (int64_t)exp_pk->i);
                     else
                         snprintf(p, sizeof(p), "%s.%s", path, key);
                     if (!found) append_error(errors, "ASSERT_NOT_FOUND", p, exp_item, NULL, "record not found");

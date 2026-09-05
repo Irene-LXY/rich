@@ -73,6 +73,8 @@ typedef struct AutomationPreset {
     int fortune_position_count;
     int fortune_respawn_delays[AUTOMATION_MAX_RANDOM_VALUES];
     int fortune_respawn_delay_count;
+    int dice_prng_configured;
+    uint32_t dice_prng_seed;
 } AutomationPreset;
 
 typedef struct AutomationSnapshot {
@@ -89,6 +91,7 @@ typedef struct AutomationSnapshot {
     int map_item_count;
     uint64_t turn_number;
     int fortune_position;
+    uint64_t fortune_spawned_after_turn;
     int fortune_remaining_map_turns;
     uint64_t fortune_next_spawn_after_turn;
 } AutomationSnapshot;

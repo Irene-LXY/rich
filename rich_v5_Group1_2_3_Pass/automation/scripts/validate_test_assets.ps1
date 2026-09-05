@@ -263,9 +263,9 @@ foreach ($case in $stateCases) {
     } elseif ($statePhase -in @('COMMAND', 'ENDED') -and $null -ne $statePrompt) {
         Add-Failure "$id 的expected.phase为$statePhase时pending_prompt必须为null或省略。"
     }
-    $structural = @{ preset = $case.preset; actions = $case.actions; expected = $case.expected } | ConvertTo-Json -Depth 100 -Compress
-    if ($structural -match '"remaining_rounds"|"BOMB"\s*:|"status"\s*:\s*"(?:HOSPITAL|JAIL)"|"type"\s*:\s*"BOMB"|"dice_sequence"|"spawned_turn"|"next_spawn_turn"|"next_spawn_in_turns"') {
-        Add-Failure "$id 的结构化状态仍包含v2.0废弃字段。"
+    $executableInput = @{ preset = $case.preset; actions = $case.actions } | ConvertTo-Json -Depth 100 -Compress
+    if ($executableInput -match '"remaining_rounds"|"BOMB"\s*:|"status"\s*:\s*"(?:HOSPITAL|JAIL)"|"type"\s*:\s*"BOMB"|"dice_sequence"|"spawned_turn"|"next_spawn_turn"|"next_spawn_in_turns"') {
+        Add-Failure "$id 的Preset或Action仍包含v2.0废弃字段。"
     }
     if ($canonicalById.ContainsKey($id)) {
         $masterJson = $canonicalById[$id] | ConvertTo-Json -Depth 100 -Compress

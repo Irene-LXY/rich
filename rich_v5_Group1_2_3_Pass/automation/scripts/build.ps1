@@ -135,6 +135,18 @@ if ($Generator) {
 # ---------------------------------------------------------------------------
 $chosenGenName = if ($genArgs.Count -ge 2) { $genArgs[1] } else { '' }
 $cacheFile = Join-Path $buildDir 'CMakeCache.txt'
+if (Test-Path -LiteralPath $cacheFile) {
+    $cachedSourceMatch = Select-String -Path $cacheFile -Pattern '^CMAKE_HOME_DIRECTORY:INTERNAL=(.*)$' | Select-Object -First 1
+    if ($cachedSourceMatch) {
+        $cachedSource = $cachedSourceMatch.Matches[0].Groups[1].Value.TrimEnd('/', '\').Replace('\', '/').ToLowerInvariant()
+        $currentSource = $compileRoot.TrimEnd('/', '\').Replace('\', '/').ToLowerInvariant()
+        if ($cachedSource -ne $currentSource) {
+            Write-Host "[提示] 工程路径已变化，清理旧CMake缓存: $cachedSource" -ForegroundColor Cyan
+            Remove-Item -LiteralPath $cacheFile -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath (Join-Path $buildDir 'CMakeFiles') -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
 if ($chosenGenName -and (Test-Path -LiteralPath $cacheFile)) {
     $cachedGen = (Select-String -Path $cacheFile -Pattern '^CMAKE_GENERATOR:INTERNAL=(.*)$' | Select-Object -First 1)
     if ($cachedGen) {
